@@ -1,0 +1,19 @@
+[package]
+name = "host-tests"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Host tests for the hardware-free code of the LilyGo T5 4.7 inch S3 examples"
+
+[workspace]
+
+[features]
+default = ["blocking"]
+blocking = ["epdpi/blocking"]
+
+[dependencies]
+epdpi = { version = "0.1", default-features = false, features = ["graphics"] }
+embedded-graphics = "0.8.1"
+
+[profile.dev]
+opt-level = 2

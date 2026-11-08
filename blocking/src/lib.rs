@@ -1,0 +1,324 @@
+//! Board support for the LilyGo T5 4.7" S3 (V2.4) used by the `epdpi` examples.
+//!
+//! Pin map from the LilyGo-EPD47 `ed047tc1.h` (ESP32-S3 block) and the V2.4 schematic, power and
+//! row sequence from FastEPD's LilyGo callbacks (both read, not copied).
+//!
+//! | Signal | GPIO | Signal | GPIO |
+//! |---|---|---|---|
+//! | D0..D7 | 8, 1, 2, 3, 4, 5, 6, 7 | CKV | 38 |
+//! | CL (write strobe) | 41 | SPH (chip select) | 40 |
+//! | 74HC595 data / clock / store | 13 / 12 / 0 | Unused DC, held high | 46 |
+//!
+//! STV, latch, output enable, mode, scan direction and both power rails sit behind the 74HC595
+//! (see [`shift_reg`]). The board has no I2C power IC.
+#![no_std]
+
+extern crate alloc;
+
+pub use esp_alloc;
+pub use esp_hal;
+
+use embedded_hal::delay::DelayNs;
+use esp_hal::Blocking;
+use esp_hal::delay::Delay;
+use esp_hal::dma::{DmaError, DmaTxBuf};
+use esp_hal::gpio::Output;
+use esp_hal::lcd_cam::lcd::i8080::{Command, I8080};
+
+pub use epdpi;
+pub use epdpi_esp;
+
+/// Parks the CPU after an unrecoverable setup error, so the log stays readable.
+pub fn halt() -> ! {
+    let delay = Delay::new();
+    loop {
+        delay.delay_millis(1000);
+    }
+}
+
+#[panic_handler]
+fn panic(info: &core::panic::PanicInfo) -> ! {
+    defmt::error!("{}", defmt::Display2Format(info));
+    loop {}
+}
+
+/// Initializes the chip with PSRAM mapped into the heap and returns the peripherals.
+///
+/// The two 4 bits per pixel buffers are 259,200 bytes each, so PSRAM is required.
+#[macro_export]
+macro_rules! init {
+    () => {{
+        use $crate::esp_alloc::{HEAP, HeapRegion, MemoryCapability};
+        use $crate::esp_hal::psram::{Psram, PsramConfig};
+        let config = $crate::esp_hal::Config::default()
+            .with_cpu_clock($crate::esp_hal::clock::CpuClock::max());
+        let peripherals = $crate::esp_hal::init(config);
+        let psram = Psram::new(
+            unsafe { peripherals.PSRAM.clone_unchecked() },
+            PsramConfig::default(),
+        );
+        let (start, size) = psram.raw_parts();
+        unsafe {
+            HEAP.add_region(HeapRegion::new(
+                start,
+                size,
+                MemoryCapability::External.into(),
+            ))
+        };
+        peripherals
+    }};
+}
+
+/// The 74HC595 that carries the panel control lines.
+pub mod shift_reg {
+    use super::*;
+
+    /// Latch enable: clocks the source drivers' row into the outputs.
+    pub const LATCH: u8 = 0x01;
+    /// Active high: holds the panel supplies off.
+    pub const POWER_DISABLE: u8 = 0x02;
+    /// Positive rail enable.
+    pub const POS_POWER: u8 = 0x04;
+    /// Negative rail enable.
+    pub const NEG_POWER: u8 = 0x08;
+    /// Gate start pulse (SPV), active low during the frame start.
+    pub const STV: u8 = 0x10;
+    /// Scan direction.
+    pub const SCAN_DIR: u8 = 0x20;
+    /// Mode: high while a frame is being driven.
+    pub const MODE: u8 = 0x40;
+    /// Source output enable.
+    pub const OUTPUT_ENABLE: u8 = 0x80;
+
+    /// Bit-banged writer with the last value cached, so single bits can change.
+    pub struct ShiftReg {
+        data: Output<'static>,
+        clock: Output<'static>,
+        store: Output<'static>,
+        state: u8,
+    }
+
+    impl ShiftReg {
+        /// Starts with the supplies disabled, scan direction set and STV high, as FastEPD does.
+        pub fn new(data: Output<'static>, clock: Output<'static>, store: Output<'static>) -> Self {
+            let mut reg = Self {
+                data,
+                clock,
+                store,
+                state: POWER_DISABLE | SCAN_DIR | STV,
+            };
+            reg.write();
+            reg
+        }
+
+        /// Shifts the cached byte out, MSB first, and latches it.
+        fn write(&mut self) {
+            self.store.set_low();
+            let mut byte = self.state;
+            for _ in 0..8 {
+                self.clock.set_low();
+                self.data.set_level((byte & 0x80 != 0).into());
+                byte <<= 1;
+                self.clock.set_high();
+            }
+            self.store.set_high();
+        }
+
+        /// Sets the bits in `mask` and writes.
+        pub fn set(&mut self, mask: u8) {
+            self.state |= mask;
+            self.write();
+        }
+
+        /// Clears the bits in `mask` and writes.
+        pub fn clear(&mut self, mask: u8) {
+            self.state &= !mask;
+            self.write();
+        }
+    }
+}
+
+/// Why a bus call failed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum LilygoBusError {
+    /// The DMA transfer failed.
+    Dma(DmaError),
+    /// A previous failure left the bus without its peripheral.
+    Lost,
+    /// The scanline does not fit the DMA buffer.
+    TooLong,
+}
+
+/// The panel bus: data through `LCD_CAM` and DMA, CKV on a GPIO, everything else through the
+/// shift register.
+pub struct LilygoBus<D> {
+    i8080: Option<I8080<'static, Blocking>>,
+    buf: Option<DmaTxBuf>,
+    ckv: Output<'static>,
+    reg: shift_reg::ShiftReg,
+    /// GPIO46 is the LoRa chip select on this board; low would deselect nothing and break the
+    /// SD bus, so it is held high for as long as the bus lives.
+    _dc: Output<'static>,
+    delay: D,
+}
+
+impl<D> LilygoBus<D> {
+    /// Wraps a configured `I8080` (data pins, write strobe and chip select attached), a DMA
+    /// buffer at least one scanline long, CKV, the shift register and a delay.
+    pub fn new(
+        i8080: I8080<'static, Blocking>,
+        buf: DmaTxBuf,
+        ckv: Output<'static>,
+        reg: shift_reg::ShiftReg,
+        dc: Output<'static>,
+        delay: D,
+    ) -> Self {
+        Self {
+            i8080: Some(i8080),
+            buf: Some(buf),
+            ckv,
+            reg,
+            _dc: dc,
+            delay,
+        }
+    }
+}
+
+impl<D: DelayNs> epdpi::EpdParallelBus for LilygoBus<D> {
+    type Error = LilygoBusError;
+
+    fn set_power(&mut self, on: bool) -> Result<(), Self::Error> {
+        use shift_reg::*;
+        if on {
+            self.reg.set(OUTPUT_ENABLE);
+            self.delay.delay_us(100);
+            self.reg.clear(POWER_DISABLE);
+            self.delay.delay_us(100);
+            self.reg.set(NEG_POWER);
+            self.delay.delay_us(500);
+            self.reg.set(POS_POWER);
+            self.delay.delay_us(100);
+            self.reg.set(STV);
+            self.delay.delay_us(100);
+        } else {
+            self.reg.clear(POS_POWER);
+            self.delay.delay_us(10);
+            self.reg.clear(NEG_POWER);
+            self.delay.delay_us(100);
+            self.reg.set(POWER_DISABLE);
+            self.delay.delay_us(100);
+            self.reg.clear(OUTPUT_ENABLE);
+            self.delay.delay_us(100);
+            self.reg.clear(STV);
+        }
+        Ok(())
+    }
+
+    fn start_frame(&mut self) -> Result<(), Self::Error> {
+        use shift_reg::*;
+        self.reg.set(MODE);
+        self.ckv.set_high();
+        self.delay.delay_us(7);
+        self.reg.clear(STV);
+        self.delay.delay_us(10);
+        self.ckv.set_low();
+        self.ckv.set_high();
+        self.delay.delay_us(8);
+        self.reg.set(STV);
+        self.delay.delay_us(10);
+        self.ckv.set_low();
+        self.ckv.set_high();
+        self.delay.delay_us(18);
+        self.ckv.set_low();
+        self.ckv.set_high();
+        Ok(())
+    }
+
+    fn write_scanline(&mut self, data: &[u8]) -> Result<(), Self::Error> {
+        let (Some(i8080), Some(mut buf)) = (self.i8080.take(), self.buf.take()) else {
+            return Err(LilygoBusError::Lost);
+        };
+        if data.len() > buf.capacity() {
+            self.i8080 = Some(i8080);
+            self.buf = Some(buf);
+            return Err(LilygoBusError::TooLong);
+        }
+        buf.fill(data);
+        match i8080.send(Command::<u8>::None, 0, buf) {
+            Ok(transfer) => {
+                self.ckv.set_high();
+                let (result, i8080, buf) = transfer.wait();
+                self.i8080 = Some(i8080);
+                self.buf = Some(buf);
+                result.map_err(LilygoBusError::Dma)
+            }
+            Err((err, i8080, buf)) => {
+                self.i8080 = Some(i8080);
+                self.buf = Some(buf);
+                Err(LilygoBusError::Dma(err))
+            }
+        }
+    }
+
+    fn next_row(&mut self) -> Result<(), Self::Error> {
+        self.ckv.set_low();
+        self.reg.set(shift_reg::LATCH);
+        self.reg.clear(shift_reg::LATCH);
+        Ok(())
+    }
+
+    fn end_frame(&mut self) -> Result<(), Self::Error> {
+        self.ckv.set_high();
+        Ok(())
+    }
+}
+
+/// Builds a [`LilygoBus`] on the V2.4 pins, with the bus clock in MHz.
+///
+/// Uses `DMA_CH0` and `LCD_CAM`. CL is GPIO41 and SPH is GPIO40, driven by the LCD peripheral.
+#[macro_export]
+macro_rules! lcd_bus {
+    ($p:expr, $mhz:expr) => {{
+        use $crate::esp_hal::dma_tx_buffer;
+        use $crate::esp_hal::gpio::{Level, Output, OutputConfig};
+        use $crate::esp_hal::lcd_cam::LcdCam;
+        use $crate::esp_hal::lcd_cam::lcd::i8080::{Config, I8080};
+        use $crate::esp_hal::time::Rate;
+        let out = |pin: $crate::esp_hal::gpio::AnyPin<'static>, level| {
+            Output::new(pin, level, OutputConfig::default())
+        };
+        let lcd_cam = LcdCam::new($p.LCD_CAM);
+        let config = Config::default().with_frequency(Rate::from_mhz($mhz));
+        let Ok(i8080) = I8080::new(lcd_cam.lcd, $p.DMA_CH0, config) else {
+            panic!("LCD_CAM config rejected");
+        };
+        let i8080 = i8080
+            .with_wrx($p.GPIO41)
+            .with_cs($p.GPIO40)
+            .with_data0($p.GPIO8)
+            .with_data1($p.GPIO1)
+            .with_data2($p.GPIO2)
+            .with_data3($p.GPIO3)
+            .with_data4($p.GPIO4)
+            .with_data5($p.GPIO5)
+            .with_data6($p.GPIO6)
+            .with_data7($p.GPIO7);
+        let Ok(buf) = dma_tx_buffer!(256) else {
+            panic!("DMA buffer allocation failed");
+        };
+        let reg = $crate::shift_reg::ShiftReg::new(
+            out($p.GPIO13.into(), Level::Low),
+            out($p.GPIO12.into(), Level::Low),
+            out($p.GPIO0.into(), Level::Low),
+        );
+        $crate::LilygoBus::new(
+            i8080,
+            buf,
+            out($p.GPIO38.into(), Level::Low),
+            reg,
+            out($p.GPIO46.into(), Level::High),
+            $crate::esp_hal::delay::Delay::new(),
+        )
+    }};
+}

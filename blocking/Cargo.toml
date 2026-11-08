@@ -1,0 +1,38 @@
+[package]
+edition      = "2024"
+name         = "rust-lilygot5-47-s3-examples"
+rust-version = "1.88"
+version      = "0.1.0"
+license      = "GPL-3.0-only"
+description  = "Hardware bring-up examples for the epdpi driver on the LilyGo T5 4.7 inch S3 V2.4 (ESP32-S3, ED047TC1 e-paper)"
+keywords     = ["esp32s3", "epaper", "embedded", "lilygo", "t5"]
+categories   = ["embedded", "no-std"]
+
+[dependencies]
+esp-hal                = { version = "~1.1.0", features = ["defmt", "esp32s3", "unstable"] }
+esp-alloc              = { version = "0.10.0", features = ["defmt", "esp32s3"] }
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["defmt", "esp32s3"] }
+esp-println            = { version = "0.17.0", features = ["defmt-espflash", "esp32s3"] }
+
+defmt             = "1.0.1"
+critical-section  = "1.2.0"
+embedded-graphics = "0.8.1"
+embedded-hal      = "1.0.0"
+
+# Blocking API (the default features). The async twin is its own project because Cargo would
+# unify the two modes inside one workspace.
+epdpi     = { version = "0.1", features = ["defmt"] }
+epdpi-esp = { version = "0.1", features = ["esp32s3", "defmt"] }
+
+[dev-dependencies]
+u8g2-fonts = { version = "0.8.0", features = ["embedded_graphics_textstyle"] }
+
+[profile.dev]
+# The default debug profile is too slow and too big for resource-constrained devices.
+opt-level = "s"
+
+[profile.release]
+codegen-units = 1     # LLVM can perform better optimizations using a single thread
+debug         = 2     # prefer slower builds but better debugging experience
+lto           = 'fat'
+opt-level     = 's'

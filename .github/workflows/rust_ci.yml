@@ -1,0 +1,82 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/README.md"
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  rust-checks:
+    name: ${{ matrix.crate }} ${{ matrix.command }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - crate: blocking
+            command: build
+            args: --lib --examples --release
+          - crate: blocking
+            command: fmt
+            args: --all -- --check
+          - crate: blocking
+            command: clippy
+            args: --lib --examples -- -D warnings
+          - crate: async
+            command: build
+            args: --lib --examples --release
+          - crate: async
+            command: fmt
+            args: --all -- --check
+          - crate: async
+            command: clippy
+            args: --lib --examples -- -D warnings
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Rust
+        uses: esp-rs/xtensa-toolchain@v1.5
+        with:
+          default: true
+          buildtargets: esp32s3
+          ldproxy: false
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ${{ matrix.crate }}
+      - name: Run command
+        working-directory: ${{ matrix.crate }}
+        run: cargo ${{ matrix.command }} ${{ matrix.args }}
+
+  host-tests:
+    name: Host tests (${{ matrix.mode }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - mode: blocking
+            args: ""
+          - mode: async
+            args: --no-default-features
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+      - name: Setup Rust
+        # Host toolchain, not the esp one: run.sh starts cargo from a neutral directory, so the
+        # crates' rust-toolchain.toml and .cargo/config.toml do not apply.
+        uses: dtolnay/rust-toolchain@stable
+      - name: Enable caching
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: host-tests
+      - name: Run host tests
+        run: ./host-tests/run.sh ${{ matrix.args }}
