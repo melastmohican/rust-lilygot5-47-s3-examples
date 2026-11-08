@@ -17,6 +17,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 | Example | What it shows |
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
+| `draw_example` | Port of the LilyGo `drawExample`: five random shapes, one per second, then a clear, in a loop. |
 
 ## Run
 
