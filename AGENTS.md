@@ -22,10 +22,17 @@ Take pinouts from the V2.4 schematic, not the LilyGo wiki or the T5S3 Pro notes 
 TPS65185 and different pins). Pin table in `README.md`. Also on the board: I2C SDA 18 / SCL 17
 (GT911 touch 0x14 or 0x5D, INT 47; PCF8563 at 0x51), SD SPI SCLK 11 / MOSI 15 / MISO 16 / CS 42,
 battery ADC GPIO 14 (2:1 divider, panel power on first), user button GPIO 21. GPIO46 is also the
-LoRa chip select: keep it high.
+strobe net of the shift register, shared with GPIO0 (schematic net STR_IO0): never drive it. It
+stays an input, as in the vendor library. Holding it high breaks every control line.
 
-74HC595 bits: latch 0x01, power_disable 0x02, pos_power 0x04, neg_power 0x08, stv 0x10,
-scan_dir 0x20, mode 0x40, output_enable 0x80.
+Shift register (74HCT4094, outputs QP0..QP7) bits: latch 0x01 (EP_LE), power_disable 0x02
+(SMPS_CTRL), pos_power 0x04 (POS_CTRL), neg_power 0x08 (NEG_CTRL), stv 0x10 (EP_STV), scan_dir
+0x20 (PWR_EN), mode 0x40 (EP_MODE), output_enable 0x80 (EP_OE). The supply bits may not do anything
+on this revision (their series resistors are not fitted); the vendor sequence sets them anyway.
+
+The vendor sequence is the reference that works on the board (`LilyGo-EPD47`, `ed047tc1.c`): CKV
+idles low, OE and MODE are on only inside a frame, CKV is high 50 us per row, SPH stays low,
+248 clocks per row at 10 MHz.
 
 Waveforms are the `epdpi` ones. M5 refresh modes belong to the PaperDIY, start with `Quality16`.
 Hardware numbers (edge timing, delays) come from LilyGo-EPD47, FastEPD and epdiy. Re-derive, do

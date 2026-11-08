@@ -43,10 +43,12 @@ Pins come from the V2.4 schematic and the LilyGo-EPD47 library.
 |---|---|---|---|
 | D0..D7 | 8, 1, 2, 3, 4, 5, 6, 7 | CKV | 38 |
 | CL (write strobe) | 41 | SPH (chip select) | 40 |
-| 74HC595 data / clock / store | 13 / 12 / 0 | Unused DC, held high | 46 |
+| Shift register data / clock / strobe | 13 / 12 / 0 | GPIO46 | tied to the strobe, leave as input |
 
-STV, latch, output enable, mode, scan direction and both power rails go through the 74HC595.
-There is no I2C power IC on this revision. The board bus is `LilygoBus` in `src/lib.rs` of each
+STV, latch, output enable and mode go through a 74HCT4094 shift register (same protocol as a
+74HC595). There is no I2C power IC on this revision. GPIO46 is wired to the same strobe net as
+GPIO0, so it must never be driven: holding it high keeps the strobe high and garbles the control
+lines. The board bus is `LilygoBus` in `src/lib.rs` of each
 crate.
 
 ## License
