@@ -181,7 +181,7 @@ pub enum LilygoBusError {
 
 /// Time CKV stays high per row. The vendor uses 50 us at 10 MHz. 22 us at 16 MHz is the PaperDIY
 /// timing the `epdpi` waveforms were tuned for, and gave better grays here.
-const ROW_US: u64 = 22;
+pub const ROW_US: u64 = 22;
 
 /// The panel bus: data through `LCD_CAM` and DMA, CKV on a GPIO, everything else through the
 /// shift register. Frame and row sequence follow the vendor's `ed047tc1.c` (read, not copied):
@@ -193,6 +193,7 @@ pub struct LilygoBus<D> {
     reg: shift_reg::ShiftReg,
     /// SPH (start pulse horizontal) is not the LCD chip select here: it is driven by hand, low only while a row is sent.
     _sph: Output<'static>,
+    row_us: u64,
     delay: D,
 }
 
@@ -214,8 +215,16 @@ impl<D> LilygoBus<D> {
             ckv,
             reg,
             _sph: sph,
+            row_us: ROW_US,
             delay,
         }
+    }
+
+    /// Sets how long CKV stays high per row, in microseconds. The default is [`ROW_US`]. A longer
+    /// row drives the pixels harder per pass: use about 50 for repair and clear cycles, as the
+    /// vendor library does.
+    pub fn set_row_us(&mut self, us: u64) {
+        self.row_us = us;
     }
 
     /// CKV high for `high` microseconds, then low for `low`.
@@ -297,7 +306,7 @@ impl<D: DelayNs> epdpi::EpdParallelBus for LilygoBus<D> {
                 self._sph.set_high();
                 self.i8080 = Some(i8080);
                 self.buf = Some(buf);
-                while (esp_hal::time::Instant::now() - high).as_micros() < ROW_US {}
+                while (esp_hal::time::Instant::now() - high).as_micros() < self.row_us {}
                 self.ckv.set_low();
                 self.delay.delay_us(5).await;
                 result.map_err(LilygoBusError::Dma)

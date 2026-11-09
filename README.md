@@ -18,6 +18,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
 | `grayscale_test` | Port of the FastEPD sketch: 16 gray swatches with their level numbers. Digits come out slightly paler than the Arduino sketch. |
+| `screen_repair` | Port of the LilyGo sketch: a clear, 20 black pulses, a clear, 40 white pulses, a clear. Wipes ghosts. |
 | `draw_example` | Port of the LilyGo `drawExample`: five random shapes, one per second, then a clear, in a loop. |
 
 ## Run
