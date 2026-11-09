@@ -47,6 +47,11 @@ pub mod battery {
     include!(concat!(env!("OUT_DIR"), "/battery_ui.rs"));
 }
 
+/// The default time, weekday and year of `rtc`.
+pub mod rtc {
+    include!(concat!(env!("OUT_DIR"), "/rtc_ui.rs"));
+}
+
 /// The pages, button logic and drawing of `button`.
 pub mod button {
     include!(concat!(env!("OUT_DIR"), "/button_ui.rs"));

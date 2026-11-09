@@ -37,6 +37,7 @@ fn main() {
         "gif_player",
         "battery",
         "button",
+        "rtc",
         "micro_sd",
     ] {
         let path = format!("../blocking/examples/{example}.rs");

@@ -1486,6 +1486,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
 
 [[package]]
+name = "pcf8563"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "480acff70a8345211e8478b478e6184e25383f2d38812cc5e54a1b1bd182f32e"
+dependencies = [
+ "embedded-hal 1.0.0",
+]
+
+[[package]]
 name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1689,6 +1698,7 @@ dependencies = [
  "esp-rtos",
  "fontdue",
  "minipng",
+ "pcf8563",
  "tinybmp",
  "tinygif",
  "u8g2-fonts",

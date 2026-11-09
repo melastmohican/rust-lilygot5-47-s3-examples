@@ -33,6 +33,7 @@ embedded-hal-bus = "0.2.0"
 embedded-sdmmc = { version = "0.10.0", default-features = false }
 minipng = "1.0"
 tinybmp = "0.6.0"
+pcf8563 = "0.2.1"
 tinygif = "0.0.4"
 zune-core = { version = "0.5.1", default-features = false }
 zune-jpeg = { version = "0.5.15", default-features = false }

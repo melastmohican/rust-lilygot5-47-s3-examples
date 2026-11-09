@@ -27,6 +27,7 @@ epdpi-esp = { version = "0.1", features = ["esp32s3", "defmt"] }
 [dev-dependencies]
 fontdue = { version = "0.9.5", default-features = false, features = ["hashbrown"] }
 embedded-hal-bus = "0.2.0"
+pcf8563 = "0.2.1"
 embedded-sdmmc = { version = "0.10.0", default-features = false }
 minipng = "1.0"
 tinybmp = "0.6.0"
