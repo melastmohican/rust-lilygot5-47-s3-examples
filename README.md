@@ -69,6 +69,11 @@ GPIO0, so it must never be driven: holding it high keeps the strobe high and gar
 lines. The board bus is `LilygoBus` in `src/lib.rs` of each
 crate.
 
+`epdpi-esp`'s `LcdBus` cannot drive this board. It expects CKV, LE, SPV, OE and power on plain GPIO
+pins, as on the M5Stack PaperDIY. Here those lines sit behind the shift register, so `LilygoBus` has its
+own edge sequence, power-on order and row timing (from the vendor library) and implements the same
+`epdpi::EpdParallelBus` trait.
+
 ## License
 
 GPL-3.0-only.
