@@ -41,6 +41,11 @@ Waveforms are the `epdpi` ones. M5 refresh modes belong to the PaperDIY, start w
 Hardware numbers (edge timing, delays) come from LilyGo-EPD47, FastEPD and epdiy. Re-derive, do
 not copy (epdiy is LGPL-3.0).
 
+## Fonts
+
+`fontdue` parses every glyph when it opens a font, and the full Roboto Black (508 KB) ran the board out
+of memory. Subset TTFs to the characters you draw (`pyftsubset`, see `assets/NOTICE.md`).
+
 ## Checks (match CI)
 
 ```bash

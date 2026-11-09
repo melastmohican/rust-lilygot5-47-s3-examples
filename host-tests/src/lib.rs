@@ -21,3 +21,8 @@ pub mod animated_smiles {
 pub mod macpaint_hello {
     include!(concat!(env!("OUT_DIR"), "/macpaint_hello_ui.rs"));
 }
+
+/// The text drawing of `antialias_font`.
+pub mod antialias_font {
+    include!(concat!(env!("OUT_DIR"), "/antialias_font_ui.rs"));
+}

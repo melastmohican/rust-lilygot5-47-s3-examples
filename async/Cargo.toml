@@ -28,6 +28,7 @@ epdpi     = { version = "0.1", default-features = false, features = ["defmt", "g
 epdpi-esp = { version = "0.1", default-features = false, features = ["esp32s3", "defmt"] }
 
 [dev-dependencies]
+fontdue = { version = "0.9.5", default-features = false, features = ["hashbrown"] }
 tinybmp = "0.6.0"
 u8g2-fonts = { version = "0.8.0", features = ["embedded_graphics_textstyle"] }
 
