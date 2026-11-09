@@ -1,14 +1,16 @@
 //! # gif_player: port of the FastEPD `gif_player` sketch
 //!
-//! Draws a title, then plays a 56 frame, 320 x 288, 1 bit animated GIF once, centred on the
+//! Draws a title, then plays a 32 frame, 432 x 322, 1 bit animated GIF once, centred on the
 //! panel, one partial update per frame and as fast as it can run. After 3 s the panel flashes black
 //! and white and stops. The Arduino sketch is
 //! `~/Src/Arduino/LilyGoT5ePaper/FastEPD/gif_player`, which decodes with AnimatedGIF. The blocking
 //! twin is `gif_player` in `blocking/`. Here `epdpi` runs in async mode on the `esp-rtos` Embassy
 //! executor.
 //!
-//! The animation is `assets/1bitsmallcity.gif`, the sketch's `1bitsmallcity.h` as a file you can
-//! open. It is decoded with `tinygif`.
+//! The animation is `assets/jimothy_walk.gif`, the author's raccoon sketch walking, which you can
+//! open in any viewer. The sketch itself plays a pixel art city (`1bitsmallcity.h`) of unknown
+//! licence, so it is not used here. The GIF is made by `tools/jimothy_walk.py`. It is decoded with
+//! `tinygif`.
 //!
 //! ## Run
 //!
@@ -19,10 +21,11 @@
 //! ## Expected
 //!
 //! - The log prints `gif_player: Rust, async` and, at the end, `played N frames in N ms`.
-//! - Landscape, 960 x 540, white. The title `epdpi GIF Demo` near the top. A pixel art city, dark
-//!   lines on a light background, appears in the middle (320 x 288 at x 320, y 126) and animates:
-//!   smoke from a chimney and passing cars. It plays once, about 5 s, holds the last frame for 3 s,
-//!   flashes black and then white, and stays blank.
+//! - Landscape, 960 x 540, white. The title `epdpi GIF Demo` near the top. A pencil drawing of a
+//!   raccoon, black lines on white (432 x 322 at x 264, y 109), takes two steps: the front paw and
+//!   the hind foot swing forward together, then the other pair, the body bobs, the head nods and
+//!   the tail sways. It plays once, holds the last frame for 3 s, flashes black and then white,
+//!   and stays blank.
 //! - Differences from the sketch: the title is drawn with `u8g2-fonts` where the sketch uses a
 //!   FastEPD font, and each frame is a `FastMono` update of the area that changed.
 #![no_std]
@@ -46,8 +49,8 @@ use u8g2_fonts::{
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-/// The sketch's `1bitsmallcity.h` as a GIF file, see `assets/NOTICE.md`.
-const GIF: &[u8] = include_bytes!("../../assets/1bitsmallcity.gif");
+/// The animation, see `assets/NOTICE.md`.
+const GIF: &[u8] = include_bytes!("../../assets/jimothy_walk.gif");
 
 /// The hardware-free part: turning GIF colors into panel grays and placing a frame. Same text in
 /// the async crate, and tested on the host by `host-tests`.
