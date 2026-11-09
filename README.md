@@ -17,6 +17,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 | Example | What it shows |
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
+| `grayscale_test` | Port of the FastEPD sketch: 16 gray swatches with their level numbers. Grays are not tuned for this panel yet. |
 | `draw_example` | Port of the LilyGo `drawExample`: five random shapes, one per second, then a clear, in a loop. |
 
 ## Run

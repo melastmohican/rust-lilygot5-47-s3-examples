@@ -88,7 +88,7 @@ fn draw_shape<D: DrawTarget<Color = Gray4> + OriginDimensions>(fb: &mut D, step:
 #[main]
 fn main() -> ! {
     let p = rust_lilygot5_47_s3_examples::init!();
-    let bus = rust_lilygot5_47_s3_examples::lcd_bus!(p, 10);
+    let bus = rust_lilygot5_47_s3_examples::lcd_bus!(p, 16);
     let rng = Rng::new();
     let delay = Delay::new();
     let mut prev = vec![0xFFu8; Ed047tc1::FB_BYTES];

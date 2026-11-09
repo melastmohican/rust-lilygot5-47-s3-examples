@@ -179,8 +179,9 @@ pub enum LilygoBusError {
     TooLong,
 }
 
-/// Time CKV stays high per row. The vendor's `epd_push_pixels(area, 50, ...)` uses 50 us.
-const ROW_US: u64 = 50;
+/// Time CKV stays high per row. The vendor uses 50 us at 10 MHz. 22 us at 16 MHz is the PaperDIY
+/// timing the `epdpi` waveforms were tuned for, and gave better grays here.
+const ROW_US: u64 = 22;
 
 /// The panel bus: data through `LCD_CAM` and DMA, CKV on a GPIO, everything else through the
 /// shift register. Frame and row sequence follow the vendor's `ed047tc1.c` (read, not copied):

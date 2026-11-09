@@ -31,8 +31,9 @@ Shift register (74HCT4094, outputs QP0..QP7) bits: latch 0x01 (EP_LE), power_dis
 on this revision (their series resistors are not fitted); the vendor sequence sets them anyway.
 
 The vendor sequence is the reference that works on the board (`LilyGo-EPD47`, `ed047tc1.c`): CKV
-idles low, OE and MODE are on only inside a frame, CKV is high 50 us per row, SPH stays low,
-248 clocks per row at 10 MHz.
+idles low, OE and MODE are on only inside a frame, SPH stays low, 248 clocks per row. The vendor
+runs 10 MHz and 50 us of CKV high per row. We use 16 MHz and 22 us (`ROW_US`), the PaperDIY timing
+the `epdpi` waveforms were tuned for: it gave better grays than 10 MHz / 50 us (8 Nov 2026).
 
 Waveforms are the `epdpi` ones. M5 refresh modes belong to the PaperDIY, start with `Quality16`.
 Hardware numbers (edge timing, delays) come from LilyGo-EPD47, FastEPD and epdiy. Re-derive, do

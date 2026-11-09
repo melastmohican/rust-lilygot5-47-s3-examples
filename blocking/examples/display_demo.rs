@@ -98,7 +98,7 @@ fn draw_demo<D: DrawTarget<Color = Gray4> + OriginDimensions>(fb: &mut D) {
 #[main]
 fn main() -> ! {
     let p = rust_lilygot5_47_s3_examples::init!();
-    let bus = rust_lilygot5_47_s3_examples::lcd_bus!(p, 10);
+    let bus = rust_lilygot5_47_s3_examples::lcd_bus!(p, 16);
     let mut prev = vec![0xFFu8; Ed047tc1::FB_BYTES];
     let mut line = vec![0u8; Ed047tc1::SCANLINE_BYTES];
     let mut fb_mem = vec![0xFFu8; Ed047tc1::FB_BYTES];

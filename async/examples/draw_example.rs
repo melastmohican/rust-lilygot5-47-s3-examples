@@ -88,7 +88,7 @@ fn draw_shape<D: DrawTarget<Color = Gray4> + OriginDimensions>(fb: &mut D, step:
 async fn main(_spawner: embassy_executor::Spawner) -> ! {
     let p = rust_lilygot5_47_s3_embassy_examples::init!();
     rust_lilygot5_47_s3_embassy_examples::start_rtos!(p);
-    let bus = rust_lilygot5_47_s3_embassy_examples::lcd_bus!(p, 10);
+    let bus = rust_lilygot5_47_s3_embassy_examples::lcd_bus!(p, 16);
     let rng = Rng::new();
     let mut prev = vec![0xFFu8; Ed047tc1::FB_BYTES];
     let mut line = vec![0u8; Ed047tc1::SCANLINE_BYTES];
