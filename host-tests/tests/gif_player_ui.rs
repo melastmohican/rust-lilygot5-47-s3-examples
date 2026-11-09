@@ -1,4 +1,4 @@
-//! Tests of the `mod ui` block of `examples/gif_player.rs`: the walking raccoon GIF, its gray levels,
+//! Tests of the `mod ui` block of `examples/gif_player.rs`: the walking horse GIF, its gray levels,
 //! where it lands and that its frames build on each other.
 
 use embedded_graphics::{
@@ -8,7 +8,7 @@ use embedded_graphics::{
 use host_tests::gif_player::*;
 use tinygif::Gif;
 
-const GIF: &[u8] = include_bytes!("../../assets/jimothy_walk.gif");
+const GIF: &[u8] = include_bytes!("../../assets/muybridge_horse_walking.gif");
 
 /// 960 x 540, one byte per pixel with the gray level 0 to 15, 0xee where nothing was drawn.
 struct Canvas {
@@ -66,16 +66,16 @@ fn gif() -> Gif<'static, Rgb888> {
 }
 
 #[test]
-fn the_gif_is_432_by_322_with_32_frames() {
+fn the_gif_is_342_by_246_with_36_frames() {
     let gif = gif();
-    assert_eq!((gif.width(), gif.height()), (432, 322));
-    // Two steps of sixteen frames.
-    assert_eq!(gif.frames().count(), 32);
+    assert_eq!((gif.width(), gif.height()), (342, 246));
+    // One stride of nine frames, four times.
+    assert_eq!(gif.frames().count(), 36);
 }
 
 #[test]
 fn the_canvas_is_centred_like_the_sketch() {
-    assert_eq!(origin(&gif()), Point::new(264, 109));
+    assert_eq!(origin(&gif()), Point::new(309, 147));
 }
 
 #[test]
@@ -94,10 +94,10 @@ fn the_first_frame_is_dark_lines_on_a_light_background() {
     let mut canvas = Canvas::new();
     draw_frame(&frame, &mut canvas, origin(&gif));
     let total = canvas.drawn();
-    assert_eq!(total, 432 * 322, "the first frame covers the canvas");
+    assert_eq!(total, 342 * 246, "the first frame covers the canvas");
     let light = canvas.count(|p| p >= 8);
     let dark = canvas.count(|p| p < 8);
-    // A pencil drawing on white: the background is the larger part, the lines are the rest.
+    // A halftone photograph of a dark horse on a light background.
     assert!(
         light > dark && dark > total / 20,
         "light {light}, dark {dark}"
@@ -105,10 +105,10 @@ fn the_first_frame_is_dark_lines_on_a_light_background() {
     // Nothing outside the canvas.
     for (x, y) in [
         (0, 0),
-        (263, 200),
-        (697, 200),
-        (400, 108),
-        (400, 432),
+        (308, 200),
+        (652, 200),
+        (400, 146),
+        (400, 394),
         (959, 539),
     ] {
         assert_eq!(canvas.at(x, y), 0xee, "({x}, {y})");
@@ -131,7 +131,7 @@ fn the_animation_changes_from_frame_to_frame() {
     }
     assert!(
         changes >= 28,
-        "only {changes} of 32 frames changed the picture"
+        "only {changes} of 36 frames changed the picture"
     );
 }
 
@@ -143,7 +143,7 @@ fn a_frame_moves_by_the_offset_and_only_by_the_offset() {
     let mut b = Canvas::new();
     draw_frame(&frame, &mut a, Point::new(100, 50));
     draw_frame(&frame, &mut b, Point::new(110, 60));
-    for (x, y) in [(100, 50), (150, 100), (400, 300)] {
+    for (x, y) in [(100, 50), (150, 100), (300, 200)] {
         assert_eq!(a.at(x, y), b.at(x + 10, y + 10), "({x}, {y})");
     }
     assert_eq!(a.drawn(), b.drawn());

@@ -1,14 +1,15 @@
 //! # gif_player: port of the FastEPD `gif_player` sketch
 //!
-//! Draws a title, then plays a 32 frame, 432 x 322, 1 bit animated GIF once, centred on the
+//! Draws a title, then plays a 36 frame, 342 x 246, 1 bit animated GIF once, centred on the
 //! panel, one partial update per frame and as fast as it can run. After 3 s the panel flashes black
 //! and white and stops. The Arduino sketch is
 //! `~/Src/Arduino/LilyGoT5ePaper/FastEPD/gif_player`, which decodes with AnimatedGIF. The async twin
 //! is `gif_player` in `async/`.
 //!
-//! The animation is `assets/jimothy_walk.gif`, the author's raccoon sketch walking, which you can
-//! open in any viewer. The sketch itself plays a pixel art city (`1bitsmallcity.h`) of unknown
-//! licence, so it is not used here. The GIF is made by `tools/jimothy_walk.py`. It is decoded with
+//! The animation is `assets/muybridge_horse_walking.gif`: Eadweard Muybridge's photographs of a
+//! horse walking (1880s, public domain), one stride of 9 frames repeated 4 times and turned into
+//! black and white by `tools/dither_gif.py`. The sketch itself plays a pixel art city
+//! (`1bitsmallcity.h`) of unknown licence, so it is not used here. The GIF is decoded with
 //! `tinygif`.
 //!
 //! ## Run
@@ -20,11 +21,10 @@
 //! ## Expected
 //!
 //! - The log prints `gif_player: Rust, blocking` and, at the end, `played N frames in N ms`.
-//! - Landscape, 960 x 540, white. The title `epdpi GIF Demo` near the top. A pencil drawing of a
-//!   raccoon, black lines on white (432 x 322 at x 264, y 109), takes two steps: the front paw and
-//!   the hind foot swing forward together, then the other pair, the body bobs, the head nods and
-//!   the tail sways. It plays once, holds the last frame for 3 s, flashes black and then white,
-//!   and stays blank.
+//! - Landscape, 960 x 540, white. The title `epdpi GIF Demo` near the top. A draft horse (342 x 246
+//!   at x 309, y 147), in a black and white halftone, walks in place for four strides: each
+//!   frame the legs are in a different phase of a real walk. It plays once, holds the last frame
+//!   for 3 s, flashes black and then white, and stays blank.
 //! - Differences from the sketch: the title is drawn with `u8g2-fonts` where the sketch uses a
 //!   FastEPD font, and each frame is a `FastMono` update of the area that changed.
 #![no_std]
@@ -51,7 +51,7 @@ use u8g2_fonts::{
 esp_bootloader_esp_idf::esp_app_desc!();
 
 /// The animation, see `assets/NOTICE.md`.
-const GIF: &[u8] = include_bytes!("../../assets/jimothy_walk.gif");
+const GIF: &[u8] = include_bytes!("../../assets/muybridge_horse_walking.gif");
 
 /// The hardware-free part: turning GIF colors into panel grays and placing a frame. Same text in
 /// the async crate, and tested on the host by `host-tests`.
