@@ -15,6 +15,8 @@ blocking = ["epdpi/blocking"]
 epdpi = { version = "0.1", default-features = false, features = ["graphics"] }
 embedded-graphics = "0.8.1"
 fontdue = "0.9.5"
+embedded-sdmmc = "0.10.0"
+minipng = "1.0"
 tinybmp = "0.6.0"
 tinygif = "0.0.4"
 zune-core = { version = "0.5.1", default-features = false }

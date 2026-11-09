@@ -34,3 +34,7 @@
   `python tools/dither_gif.py Muybridge_horse_walking_animated.gif assets/muybridge_horse_walking.gif 4`.
   Used by `examples/gif_player.rs`. It replaces the pixel art city GIF of the Arduino sketch, whose
   author and licence were unknown.
+
+- `sd-card/MOCHA.PNG`: the 800 x 480 PNG of Mocha that the `micro_sd` example reads from the microSD
+  card (the sketch's `mocha800x480.png`). A photograph of Mocha, an Australian Labradoodle, taken by
+  the author of this repository, who owns the copyright. The same picture as `mocha800x480.jpg`.

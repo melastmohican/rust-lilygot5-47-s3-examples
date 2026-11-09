@@ -36,6 +36,7 @@ fn main() {
         "draw_images",
         "gif_player",
         "button",
+        "micro_sd",
     ] {
         let path = format!("../blocking/examples/{example}.rs");
         println!("cargo:rerun-if-changed={path}");

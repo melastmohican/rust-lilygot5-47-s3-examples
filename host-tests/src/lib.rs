@@ -46,3 +46,8 @@ pub mod gif_player {
 pub mod button {
     include!(concat!(env!("OUT_DIR"), "/button_ui.rs"));
 }
+
+/// The card access, PNG decoding and drawing of `micro_sd`.
+pub mod micro_sd {
+    include!(concat!(env!("OUT_DIR"), "/micro_sd_ui.rs"));
+}
