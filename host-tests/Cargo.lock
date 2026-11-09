@@ -258,6 +258,7 @@ dependencies = [
  "epdpi",
  "fontdue",
  "minipng",
+ "timezone-data",
  "tinybmp",
  "tinygif",
  "zune-core",
@@ -483,6 +484,12 @@ dependencies = [
  "quote",
  "syn 3.0.9",
 ]
+
+[[package]]
+name = "timezone-data"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aad13301ab2ef1974c3e7ea9173ec14bb35aaaf2ab6ff3e8a888aee0d4fbe119"
 
 [[package]]
 name = "tinybmp"

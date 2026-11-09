@@ -2059,6 +2059,7 @@ dependencies = [
  "sntpc",
  "sntpc-net-embassy",
  "sntpc-time-embassy",
+ "timezone-data",
  "tinybmp",
  "tinygif",
  "u8g2-fonts",
@@ -2349,6 +2350,12 @@ checksum = "1ad99c4c6d32803332c548b1af0540b357b3f5fc0be8f6c6bfe8b2e6ae784070"
 dependencies = [
  "cfg-if",
 ]
+
+[[package]]
+name = "timezone-data"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "aad13301ab2ef1974c3e7ea9173ec14bb35aaaf2ab6ff3e8a888aee0d4fbe119"
 
 [[package]]
 name = "tinybmp"

@@ -30,6 +30,7 @@ fn the_async_crate_has_the_same_ui_blocks() {
         "gif_player",
         "battery",
         "button",
+        "demo",
         "rtc",
         "wifi_ntp",
         "micro_sd",

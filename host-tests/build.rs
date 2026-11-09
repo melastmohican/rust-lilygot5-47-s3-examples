@@ -37,6 +37,7 @@ fn main() {
         "gif_player",
         "battery",
         "button",
+        "demo",
         "rtc",
         "wifi_ntp",
         "micro_sd",
