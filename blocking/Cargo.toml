@@ -29,10 +29,13 @@ fontdue = { version = "0.9.5", default-features = false, features = ["hashbrown"
 embedded-hal-bus = "0.2.0"
 pcf8563 = "0.2.1"
 gt911 = "0.3.0"
+# Git, not crates.io: 0.14.0 pulls embedded-tls 0.18, which does not build with the current der
+# crates. Go back to crates.io when reqwless 0.14.1 is released.
+reqwless = { git = "https://github.com/drogue-iot/reqwless", rev = "094f5b850deb07f8a24086f546f7ac495d9f1ef2", features = ["defmt", "rsa"] }
 timezone-data = "0.2.0"
 embassy-executor = { version = "0.10.0", features = ["defmt"] }
 embassy-time = { version = "0.5.0", features = ["defmt"] }
-embassy-net = { version = "0.9.1", features = ["defmt", "udp", "dns", "dhcpv4", "medium-ethernet", "proto-ipv4"] }
+embassy-net = { version = "0.9.1", features = ["defmt", "udp", "tcp", "dns", "dhcpv4", "medium-ethernet", "proto-ipv4"] }
 esp-radio = { version = "0.18.0", features = ["wifi", "esp32s3", "unstable", "defmt"] }
 esp-rtos = { version = "0.3.0", features = ["defmt", "embassy", "esp32s3", "esp-radio", "esp-alloc"] }
 sntpc = { version = "0.11.0", default-features = false, features = ["defmt"] }

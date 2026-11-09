@@ -15,6 +15,9 @@ follow its conventions. The Arduino sketches to port are in `~/Src/Arduino/LilyG
   with `## Run` and `## Expected`.
 - WiFi examples include `secret.rs` at the repo root (git-ignored; copy `secret.rs.example`). Never
   commit, print or log the credentials. CI copies the example file so the examples build.
+- `reqwless` is a git dependency pinned to one commit (crates.io 0.14.0 pulls `embedded-tls` 0.18, which
+  does not build with the current `der` crates) with its `rsa` feature: the Quotables server only accepts RSA
+  signatures. Go back to crates.io when 0.14.1 is released.
 - Flashing: use `cargo run --release --example <name>` (flash plus monitor). A bare `espflash reset`
   or `espflash monitor` lands in download mode on this board, and a stray `espflash` process holds
   the serial port: `pkill -f espflash` first.
