@@ -47,6 +47,11 @@ pub mod battery {
     include!(concat!(env!("OUT_DIR"), "/battery_ui.rs"));
 }
 
+/// Parsing, ASCII folding, wrapping and drawing of `quotables`.
+pub mod quotables {
+    include!(concat!(env!("OUT_DIR"), "/quotables_ui.rs"));
+}
+
 /// The time zone, line texts, button logic and drawing of `demo`.
 pub mod demo {
     include!(concat!(env!("OUT_DIR"), "/demo_ui.rs"));

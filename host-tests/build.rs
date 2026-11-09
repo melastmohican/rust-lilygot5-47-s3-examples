@@ -37,6 +37,7 @@ fn main() {
         "gif_player",
         "battery",
         "button",
+        "quotables",
         "demo",
         "rtc",
         "wifi_ntp",

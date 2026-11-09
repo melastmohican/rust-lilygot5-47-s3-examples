@@ -3238,6 +3238,7 @@ dependencies = [
  "minipng",
  "pcf8563",
  "reqwless",
+ "serde_json",
  "sntpc",
  "sntpc-net-embassy",
  "sntpc-time-embassy",

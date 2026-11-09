@@ -29,6 +29,7 @@ fontdue = { version = "0.9.5", default-features = false, features = ["hashbrown"
 embedded-hal-bus = "0.2.0"
 pcf8563 = "0.2.1"
 gt911 = "0.3.0"
+serde_json = { version = "1", default-features = false, features = ["alloc"] }
 # Git, not crates.io: 0.14.0 pulls embedded-tls 0.18, which does not build with the current der
 # crates. Go back to crates.io when reqwless 0.14.1 is released.
 reqwless = { git = "https://github.com/drogue-iot/reqwless", rev = "094f5b850deb07f8a24086f546f7ac495d9f1ef2", features = ["defmt", "rsa"] }
