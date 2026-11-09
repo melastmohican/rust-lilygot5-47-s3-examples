@@ -38,6 +38,7 @@ fn main() {
         "battery",
         "button",
         "rtc",
+        "wifi_ntp",
         "micro_sd",
     ] {
         let path = format!("../blocking/examples/{example}.rs");

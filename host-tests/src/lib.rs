@@ -47,6 +47,11 @@ pub mod battery {
     include!(concat!(env!("OUT_DIR"), "/battery_ui.rs"));
 }
 
+/// The calendar date of Unix seconds in `wifi_ntp`.
+pub mod wifi_ntp {
+    include!(concat!(env!("OUT_DIR"), "/wifi_ntp_ui.rs"));
+}
+
 /// The default time, weekday and year of `rtc`.
 pub mod rtc {
     include!(concat!(env!("OUT_DIR"), "/rtc_ui.rs"));

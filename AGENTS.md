@@ -13,6 +13,11 @@ follow its conventions. The Arduino sketches to port are in `~/Src/Arduino/LilyG
 - Every port has a blocking and an async twin with the same file name as the Arduino sketch.
 - Each example states its build on screen (`Rust: epdpi blocking|async`) and has a `//!` header
   with `## Run` and `## Expected`.
+- WiFi examples include `secret.rs` at the repo root (git-ignored; copy `secret.rs.example`). Never
+  commit, print or log the credentials. CI copies the example file so the examples build.
+- Flashing: use `cargo run --release --example <name>` (flash plus monitor). A bare `espflash reset`
+  or `espflash monitor` lands in download mode on this board, and a stray `espflash` process holds
+  the serial port: `pkill -f espflash` first.
 - READMEs describe what exists now. Planned work lives in `.agents/notes/backlog.md`.
 - Docs read like a person wrote them: no em dashes, no "it's not X, it's Y".
 

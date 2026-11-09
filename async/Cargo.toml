@@ -10,7 +10,7 @@ categories   = ["embedded", "no-std"]
 
 [dependencies]
 esp-hal                = { version = "~1.1.0", features = ["defmt", "esp32s3", "unstable"] }
-esp-rtos               = { version = "0.3.0", features = ["defmt", "embassy", "esp32s3", "esp-alloc"] }
+esp-rtos               = { version = "0.3.0", features = ["defmt", "embassy", "esp32s3", "esp-radio", "esp-alloc"] }
 esp-alloc              = { version = "0.10.0", features = ["defmt", "esp32s3"] }
 esp-bootloader-esp-idf = { version = "0.5.0", features = ["defmt", "esp32s3"] }
 esp-println            = { version = "0.17.0", features = ["defmt-espflash", "esp32s3"] }
@@ -34,6 +34,11 @@ embedded-sdmmc = { version = "0.10.0", default-features = false }
 minipng = "1.0"
 tinybmp = "0.6.0"
 pcf8563 = "0.2.1"
+esp-radio = { version = "0.18.0", features = ["wifi", "esp32s3", "unstable", "defmt"] }
+embassy-net = { version = "0.9.1", features = ["defmt", "udp", "dns", "dhcpv4", "medium-ethernet", "proto-ipv4"] }
+sntpc = { version = "0.11.0", default-features = false, features = ["defmt"] }
+sntpc-net-embassy = { version = "0.11.0", default-features = false, features = ["defmt"] }
+sntpc-time-embassy = "0.6.0"
 tinygif = "0.0.4"
 zune-core = { version = "0.5.1", default-features = false }
 zune-jpeg = { version = "0.5.15", default-features = false }

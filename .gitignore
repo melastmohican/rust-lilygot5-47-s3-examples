@@ -30,3 +30,6 @@ target/
 
 # Python bytecode of tools/
 __pycache__/
+
+# WiFi name and password for the examples that connect (copy secret.rs.example)
+/secret.rs

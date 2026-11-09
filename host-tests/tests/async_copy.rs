@@ -31,6 +31,7 @@ fn the_async_crate_has_the_same_ui_blocks() {
         "battery",
         "button",
         "rtc",
+        "wifi_ntp",
         "micro_sd",
     ] {
         let a = std::fs::read_to_string(here.join(format!("{example}.rs"))).unwrap();

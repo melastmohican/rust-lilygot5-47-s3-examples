@@ -48,6 +48,8 @@ jobs:
           default: true
           buildtargets: esp32s3
           ldproxy: false
+      - name: Placeholder WiFi credentials
+        run: cp secret.rs.example secret.rs
       - name: Enable caching
         uses: Swatinem/rust-cache@v2
         with:
