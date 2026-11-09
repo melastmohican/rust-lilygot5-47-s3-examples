@@ -21,9 +21,7 @@
 //!   FastEPD's 12x16 one. The grays come from `epdpi`'s waveform table, not FastEPD's.
 //!   The last gray level (15) is the same white as the background, so its swatch is only
 //!   visible through the outline.
-//! - Known limits on this board (8 Nov 2026): black (level 0) is only dark gray, levels 9 to 15 are
-//!   close together, and the thin strokes of the numbers come out dotted. The cause is the pass
-//!   table, not this example: see `lilygo-waveform` in the backlog.
+//! - Known limit on this board: black and the digits are slightly paler than in the Arduino sketch.
 #![no_std]
 #![no_main]
 

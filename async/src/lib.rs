@@ -185,13 +185,13 @@ const ROW_US: u64 = 22;
 
 /// The panel bus: data through `LCD_CAM` and DMA, CKV on a GPIO, everything else through the
 /// shift register. Frame and row sequence follow the vendor's `ed047tc1.c` (read, not copied):
-/// CKV idles low, OE and MODE are on only inside a frame, SPH stays low.
+/// CKV idles low, OE and MODE are on only inside a frame, SPH is high between rows and low while a row is sent (FastEPD, without it 1 px strokes ghost).
 pub struct LilygoBus<D> {
     i8080: Option<I8080<'static, Async>>,
     buf: Option<DmaTxBuf>,
     ckv: Output<'static>,
     reg: shift_reg::ShiftReg,
-    /// SPH (start pulse horizontal) is not the LCD chip select here, it stays low.
+    /// SPH (start pulse horizontal) is not the LCD chip select here: it is driven by hand, low only while a row is sent.
     _sph: Output<'static>,
     delay: D,
 }
@@ -284,6 +284,7 @@ impl<D: DelayNs> epdpi::EpdParallelBus for LilygoBus<D> {
             return Err(LilygoBusError::TooLong);
         }
         buf.fill(data);
+        self._sph.set_low();
         let high = esp_hal::time::Instant::now();
         match i8080.send(Command::<u8>::None, 0, buf) {
             Ok(transfer) => {
@@ -293,6 +294,7 @@ impl<D: DelayNs> epdpi::EpdParallelBus for LilygoBus<D> {
                     transfer.wait_for_done().await;
                     transfer.wait()
                 };
+                self._sph.set_high();
                 self.i8080 = Some(i8080);
                 self.buf = Some(buf);
                 while (esp_hal::time::Instant::now() - high).as_micros() < ROW_US {}
@@ -336,12 +338,21 @@ macro_rules! lcd_bus {
         use $crate::esp_hal::gpio::{Level, Output, OutputConfig};
         use $crate::esp_hal::lcd_cam::LcdCam;
         use $crate::esp_hal::lcd_cam::lcd::i8080::{Config, I8080};
+        use $crate::esp_hal::lcd_cam::lcd::{ClockMode, Phase, Polarity};
         use $crate::esp_hal::time::Rate;
         let out = |pin: $crate::esp_hal::gpio::AnyPin<'static>, level| {
             Output::new(pin, level, OutputConfig::default())
         };
         let lcd_cam = LcdCam::new($p.LCD_CAM).into_async();
-        let config = Config::default().with_frequency(Rate::from_mhz($mhz));
+        // The write strobe idles high, as in the vendor library (LCD_CK_IDLE_EDGE = 1). With the
+        // esp-hal default (idle low) the data changes on the sampling edge, which breaks every
+        // pixel that differs from its neighbours.
+        let config = Config::default()
+            .with_frequency(Rate::from_mhz($mhz))
+            .with_clock_mode(ClockMode {
+                polarity: Polarity::IdleHigh,
+                phase: Phase::ShiftLow,
+            });
         let Ok(i8080) = I8080::new(lcd_cam.lcd, $p.DMA_CH0, config) else {
             panic!("LCD_CAM config rejected");
         };
@@ -368,7 +379,7 @@ macro_rules! lcd_bus {
             buf,
             out($p.GPIO38.into(), Level::Low),
             reg,
-            out($p.GPIO40.into(), Level::Low),
+            out($p.GPIO40.into(), Level::High),
             $crate::embassy_time::Delay,
         )
     }};

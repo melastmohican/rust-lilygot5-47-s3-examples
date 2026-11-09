@@ -31,7 +31,9 @@ Shift register (74HCT4094, outputs QP0..QP7) bits: latch 0x01 (EP_LE), power_dis
 on this revision (their series resistors are not fitted); the vendor sequence sets them anyway.
 
 The vendor sequence is the reference that works on the board (`LilyGo-EPD47`, `ed047tc1.c`): CKV
-idles low, OE and MODE are on only inside a frame, SPH stays low, 248 clocks per row. The vendor
+idles low, OE and MODE are on only inside a frame, 248 clocks per row. SPH is driven by hand as in
+FastEPD: high between rows, low only while a row is sent. Holding it low made 1 px strokes ghost
+(a copy shifted by about a pixel, pale digits). The write strobe idles high (LCD_CK_IDLE_EDGE). The vendor
 runs 10 MHz and 50 us of CKV high per row. We use 16 MHz and 22 us (`ROW_US`), the PaperDIY timing
 the `epdpi` waveforms were tuned for: it gave better grays than 10 MHz / 50 us (8 Nov 2026).
 
