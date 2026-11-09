@@ -7,7 +7,7 @@ LilyGo T5 4.7" S3 (V2.4): ESP32-S3, 16 MB flash, OPI PSRAM, ED047TC1 panel, 960 
 |---|---|
 | `blocking/` | Examples on the blocking API. |
 | `async/` | The same examples on the Embassy executor. |
-| `host-tests/` | Tests that run on the host, in both modes. |
+| `host-tests/` | Tests that run on the host, in both modes: the `animated_smiles` G5 decoder and bounce logic. |
 
 Each of `blocking/`, `async/` and `host-tests/` is a separate Cargo project on purpose. `epdpi` has
 mutually exclusive blocking and async modes, and one Cargo workspace would unify them.
@@ -18,6 +18,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
 | `grayscale_test` | Port of the FastEPD sketch: 16 gray swatches with their level numbers. Digits come out slightly paler than the Arduino sketch. |
+| `animated_smiles` | Port of the FastEPD sketch: 8 bouncing smileys, 250 partial updates, then a clear. Has host tests. |
 | `lilygo_grayscale_test` | Port of the LilyGo vendor sketch: 16 gradient bars drawn twice per cycle, draw times in the log. |
 | `screen_repair` | Port of the LilyGo sketch: a clear, 20 black pulses, a clear, 40 white pulses, a clear. Wipes ghosts. |
 | `draw_example` | Port of the LilyGo `drawExample`: five random shapes, one per second, then a clear, in a loop. |
