@@ -6,11 +6,15 @@
 //! `~/Src/Arduino/LilyGoT5ePaper/LilyGo/demo`. The async twin is `demo` in `async/`. Here the blocking
 //! `epdpi` calls run on the `esp-rtos` executor, because the network stack needs it.
 //!
-//! Differences from the sketch: the LilyGo logo is not shown and the emoji are words. This board has
-//! no touch panel, so the corner boxes and the `Sleep` box are not drawn, and holding the user button
-//! (GPIO21) for 2 s does what the `Sleep` box does: it shows `Sleep` and deep-sleeps for 30 s or until
-//! the button is pressed. The three lines that change are redrawn every 10 s with a partial refresh in
-//! black and white. The clock holds UTC and the line shows Pacific time (`PST8PDT`).
+//! Differences from the sketch: the LilyGo logo is not shown and the emoji are words. The touch part
+//! (GT911 at 0x14 or 0x5D, INT on GPIO47, corner boxes A to D and a `Sleep` box) is written with the
+//! `gt911` crate and SensorLib's coordinate mapping, but the board this was built on has no touch
+//! panel, so only the "no touch controller" path has run: `Touch: probe failed` and no boxes. The
+//! touch path is NOT verified on hardware. The crate has no sleep command, so the controller is not
+//! put to sleep before the board sleeps. Holding the user button (GPIO21) for 2 s also deep-sleeps for
+//! 30 s or until the button is pressed, which the sketch has no way to do without touch. The three
+//! lines that change are redrawn every 10 s with a partial refresh in black and white. The clock
+//! holds UTC and the line shows Pacific time (`PST8PDT`).
 //!
 //! ## Run
 //!
@@ -24,6 +28,8 @@
 //! - The log prints `demo: Rust, blocking` and the wake-up cause.
 //! - Landscape, 960 x 540 (no rotation). A title and the lines `SD card`, `RTC`, `Touch`, `Voltage`, the time and
 //!   `Pressed`. The time line reads `NTP no` until WiFi and NTP have set the clock, then `NTP ok`.
+//! - With a touch panel: boxes `A` to `D` in the corners and `Sleep` at the bottom, and a touch shows
+//!   `Pressed Button: A` (or `X:.. Y:..` outside the boxes) on the last line. Not verified.
 //! - Each press of the user button raises `Pressed` by one. Holding it for 2 s shows `Sleep`, and the
 //!   board wakes 30 s later or on a press.
 #![no_std]
@@ -32,12 +38,13 @@
 extern crate alloc;
 
 use alloc::{boxed::Box, vec};
+use core::cell::RefCell;
 use core::sync::atomic::{AtomicU32, Ordering};
 use defmt::{Debug2Format, error, info, warn};
 use embassy_executor::Spawner;
 use embassy_net::{Config as NetConfig, Runner, Stack, StackResources, dns::DnsQueryType, udp};
 use embassy_time::{Duration, Instant, Timer};
-use embedded_hal_bus::spi::ExclusiveDevice;
+use embedded_hal_bus::{i2c::RefCellDevice, spi::ExclusiveDevice};
 use embedded_sdmmc::SdCard;
 use esp_hal::analog::adc::{Adc, AdcCalCurve, AdcConfig, Attenuation};
 use esp_hal::delay::Delay;
@@ -53,6 +60,7 @@ use esp_hal::spi::{Mode as SpiMode, master::Config as SpiConfig, master::Spi};
 use esp_hal::time::Rate;
 use esp_println as _;
 use esp_radio::wifi::{Config, ControllerConfig, Interface, WifiController, sta::StationConfig};
+use gt911::Gt911Blocking;
 use pcf8563::{DateTime, PCF8563};
 use rust_lilygot5_47_s3_examples::epdpi::prelude::*;
 use sntpc::{NtpContext, get_time};
@@ -97,6 +105,25 @@ mod ui {
     pub const DYNAMIC: (i32, i32, u32, u32) = (190, 310, 700, 160);
     pub const PX: f32 = 30.0;
     pub const TITLE_PX: f32 = 46.0;
+    /// The panel in landscape.
+    pub const SCREEN_W: u16 = 960;
+    pub const SCREEN_H: u16 = 540;
+    /// The touch boxes of the sketch's `touchPoint`: `(id, x, y, w, h)`. The label is `A` plus the id,
+    /// so the fifth box, the `Sleep` box, is `E` in the sketch's message.
+    pub const BOXES: [(u8, i32, i32, i32, i32); 5] = [
+        (0, 10, 10, 80, 80),
+        (1, SCREEN_W as i32 - 80, 10, 80, 80),
+        (2, 10, SCREEN_H as i32 - 80, 80, 80),
+        (3, SCREEN_W as i32 - 80, SCREEN_H as i32 - 80, 80, 80),
+        (4, SCREEN_W as i32 / 2 - 60, SCREEN_H as i32 - 80, 120, 80),
+    ];
+    /// The id of the `Sleep` box.
+    pub const SLEEP_BOX: u8 = 4;
+    /// Touch addresses the sketch probes. 0x5D wins when both answer, the default is 0x14.
+    pub const TOUCH_ADDR_A: u8 = 0x14;
+    pub const TOUCH_ADDR_B: u8 = 0x5D;
+    /// The sketch looks at the touch controller this often, in milliseconds.
+    pub const TOUCH_MS: u32 = 300;
     /// A press must hold this long, in milliseconds, to count.
     pub const DEBOUNCE_MS: u32 = 20;
     /// Holding this long sleeps.
@@ -185,12 +212,48 @@ mod ui {
         })
     }
 
-    pub fn touch_line(found: bool) -> String {
-        String::from(if found {
-            "Touch: found (not used)"
+    pub fn touch_line(online: bool) -> String {
+        String::from(if online {
+            "Touch: online"
         } else {
-            "Touch: not fitted"
+            "Touch: probe failed"
         })
+    }
+
+    /// The address to try: 0x5D if it answered, else 0x14 (the sketch's default).
+    pub fn touch_address(answered_14: bool, answered_5d: bool) -> u8 {
+        if answered_5d {
+            TOUCH_ADDR_B
+        } else {
+            let _ = answered_14;
+            TOUCH_ADDR_A
+        }
+    }
+
+    /// SensorLib's mapping of a raw GT911 point to the screen, for `setSwapXY(true)`,
+    /// `setMirrorXY(false, true)` and `setMaxCoordinates(960, 540)` and no scaling: swap X and Y,
+    /// mirror Y against 540 with 16 bit wrap-around, then clamp to 960 and 540.
+    pub fn map_point(raw_x: u16, raw_y: u16) -> (u16, u16) {
+        let (x, y) = (raw_y, raw_x);
+        let y = SCREEN_H.wrapping_sub(y);
+        (x.min(SCREEN_W), y.min(SCREEN_H))
+    }
+
+    /// The id of the box that contains the point, edges excluded like the sketch.
+    pub fn hit(x: u16, y: u16) -> Option<u8> {
+        let (x, y) = (i32::from(x), i32::from(y));
+        BOXES
+            .iter()
+            .find(|&&(_, bx, by, bw, bh)| x > bx && x < bx + bw && y > by && y < by + bh)
+            .map(|&(id, ..)| id)
+    }
+
+    /// The text for a touch: the pressed box, or the position.
+    pub fn touch_text(x: u16, y: u16, hit: Option<u8>) -> String {
+        match hit {
+            Some(id) => format!("Pressed Button: {}", char::from(b'A' + id)),
+            None => format!("X:{} Y:{}", x, y),
+        }
     }
 
     pub fn voltage_line(mv: u32) -> String {
@@ -278,6 +341,19 @@ mod ui {
         baseline: i32,
         text: &str,
     ) {
+        draw_text(target, font, px, x, baseline, text, false);
+    }
+
+    /// Like [`draw_line`], white on whatever is under it when `white` is set.
+    pub fn draw_text<D: DrawTarget<Color = Gray4>>(
+        target: &mut D,
+        font: &Font,
+        px: f32,
+        x: i32,
+        baseline: i32,
+        text: &str,
+        white: bool,
+    ) {
         let mut pen = x as f32;
         for ch in text.chars() {
             let (metrics, coverage) = font.rasterize(ch, px);
@@ -285,7 +361,14 @@ mod ui {
             let top = baseline - metrics.ymin - metrics.height as i32;
             let width = metrics.width.max(1);
             let pixels = coverage.iter().enumerate().filter_map(|(i, &c)| {
-                let color = level(c)?;
+                let color = if white {
+                    if c == 0 {
+                        return None;
+                    }
+                    Gray4::new(((u16::from(c) * 15 + 127) / 255) as u8)
+                } else {
+                    level(c)?
+                };
                 let (col, row) = ((i % width) as i32, (i / width) as i32);
                 Some(Pixel(Point::new(left + col, top + row), color))
             });
@@ -308,12 +391,36 @@ mod ui {
         sd: &str,
         rtc: &str,
         touch: &str,
+        boxes: bool,
     ) {
         let _ = target.clear(Gray4::WHITE);
         draw_line(target, font, TITLE_PX, TEXT_X, TITLE_Y, "LILYGO T5 4.7 S3");
         draw_line(target, font, PX, TEXT_X, SD_Y, sd);
         draw_line(target, font, PX, TEXT_X, RTC_Y, rtc);
         draw_line(target, font, PX, TEXT_X, TOUCH_Y, touch);
+        if boxes {
+            draw_boxes(target, font);
+        }
+    }
+
+    /// The touch boxes: `A` to `D` white on a black square, and `Sleep` in an outline, like the sketch.
+    pub fn draw_boxes<D: DrawTarget<Color = Gray4>>(target: &mut D, font: &Font) {
+        let (w, h) = (i32::from(SCREEN_W), i32::from(SCREEN_H));
+        let letters = [(18, 50), (w - 72, 50), (18, h - 30), (w - 72, h - 30)];
+        for (&(id, x, y, bw, bh), &(lx, ly)) in BOXES.iter().zip(letters.iter()) {
+            let _ = Rectangle::new(Point::new(x, y), Size::new(bw as u32, bh as u32))
+                .into_styled(PrimitiveStyle::with_fill(Gray4::BLACK))
+                .draw(target);
+            let letter = [char::from(b'A' + id)];
+            let mut text = [0u8; 4];
+            let s = letter[0].encode_utf8(&mut text);
+            draw_text(target, font, PX, lx, ly, s, true);
+        }
+        let (_, x, y, bw, _) = BOXES[SLEEP_BOX as usize];
+        let _ = Rectangle::new(Point::new(x, y), Size::new(bw as u32, 75))
+            .into_styled(PrimitiveStyle::with_stroke(Gray4::BLACK, 1))
+            .draw(target);
+        draw_line(target, font, PX, w / 2 - 55, h - 30, "Sleep");
     }
 
     /// Clears the changing area and draws the three lines in it.
@@ -462,11 +569,26 @@ async fn main(spawner: Spawner) -> ! {
         error!("i2c config failed");
         rust_lilygot5_47_s3_examples::halt();
     };
-    let mut i2c = i2c.with_sda(p.GPIO18).with_scl(p.GPIO17);
-    let touch_found = [0x14u8, 0x5D].iter().any(|&a| i2c.write(a, &[]).is_ok());
-    let mut rtc = PCF8563::new(i2c);
+    // The clock and the touch controller share the bus.
+    let i2c_bus = RefCell::new(i2c.with_sda(p.GPIO18).with_scl(p.GPIO17));
+    let answered_14 = i2c_bus.borrow_mut().write(ui::TOUCH_ADDR_A, &[]).is_ok();
+    let answered_5d = i2c_bus.borrow_mut().write(ui::TOUCH_ADDR_B, &[]).is_ok();
+    let mut rtc = PCF8563::new(RefCellDevice::new(&i2c_bus));
     let rtc_found = rtc.get_voltage_low_flag().is_ok();
-    info!("rtc found: {}, touch found: {}", rtc_found, touch_found);
+
+    // The touch controller: the sketch wakes it with INT high, then reads INT as an input. Not
+    // verified on hardware, the board this was written on has no touch panel.
+    let mut int_pin = p.GPIO47;
+    {
+        let _wake = Output::new(int_pin.reborrow(), Level::High, OutputConfig::default());
+    }
+    let touch_int = Input::new(int_pin.reborrow(), InputConfig::default());
+    let touch = Gt911Blocking::new(ui::touch_address(answered_14, answered_5d));
+    let touch_online = touch.init(&mut RefCellDevice::new(&i2c_bus)).is_ok();
+    info!(
+        "rtc found: {}, touch online: {} (0x14: {}, 0x5D: {})",
+        rtc_found, touch_online, answered_14, answered_5d
+    );
 
     // Battery divider on GPIO14.
     let mut adc_config = AdcConfig::new();
@@ -499,16 +621,17 @@ async fn main(spawner: Spawner) -> ! {
         Err(_) => warn!("wifi init failed"),
     }
 
+    let mut status = ui::pressed_line(0);
     let sd = ui::sd_line(card_bytes);
     let rtc_text = ui::rtc_line(rtc_found);
-    let touch = ui::touch_line(touch_found);
-    ui::draw_static(&mut fb, &font, &sd, &rtc_text, &touch);
+    let touch_text = ui::touch_line(touch_online);
+    ui::draw_static(&mut fb, &font, &sd, &rtc_text, &touch_text, touch_online);
     ui::draw_dynamic(
         &mut fb,
         &font,
         &ui::voltage_line(0),
         &ui::time_line(None, false),
-        &ui::pressed_line(0),
+        &status,
     );
     if display.refresh(&fb, RefreshMode::Quality16).is_err() {
         error!("refresh failed");
@@ -521,6 +644,8 @@ async fn main(spawner: Spawner) -> ! {
     let mut presses = 0u32;
     let mut synced = false;
     let mut next_update = 0u32;
+    let mut next_touch = 0u32;
+    let mut sleep_now = false;
     loop {
         let now = (Instant::now() - start).as_millis() as u32;
         let mut redraw = now >= next_update;
@@ -528,6 +653,7 @@ async fn main(spawner: Spawner) -> ! {
             ui::Event::Press => {
                 presses += 1;
                 info!("pressed {}", presses);
+                status = ui::pressed_line(presses);
                 redraw = true;
             }
             ui::Event::Long => {
@@ -535,6 +661,27 @@ async fn main(spawner: Spawner) -> ! {
                 break;
             }
             ui::Event::None => {}
+        }
+        // Like the sketch: every 300 ms, and only while INT is high.
+        if touch_online && now >= next_touch {
+            next_touch = now + ui::TOUCH_MS;
+            if touch_int.is_high() {
+                match touch.get_touch(&mut RefCellDevice::new(&i2c_bus)) {
+                    Ok(Some(point)) => {
+                        let (x, y) = ui::map_point(point.x, point.y);
+                        let hit = ui::hit(x, y);
+                        info!("touch {} {} -> {} {}, box {}", point.x, point.y, x, y, hit);
+                        status = ui::touch_text(x, y, hit);
+                        redraw = true;
+                        if hit == Some(ui::SLEEP_BOX) {
+                            info!("deep sleep");
+                            sleep_now = true;
+                        }
+                    }
+                    Ok(None) => {}
+                    Err(_) => warn!("touch read failed"),
+                }
+            }
         }
         let ntp = NTP_UNIX.swap(0, Ordering::AcqRel);
         if ntp != 0 {
@@ -580,7 +727,7 @@ async fn main(spawner: Spawner) -> ! {
                 &font,
                 &ui::voltage_line(ui::battery_mv(u32::from(pin_mv))),
                 &ui::time_line(unix.filter(|_| rtc_found), synced),
-                &ui::pressed_line(presses),
+                &status,
             );
             if display
                 .refresh_dirty(&mut fb, RefreshMode::FastMono)
@@ -588,6 +735,9 @@ async fn main(spawner: Spawner) -> ! {
             {
                 error!("refresh failed");
             }
+        }
+        if sleep_now {
+            break;
         }
         Timer::after(Duration::from_millis(5)).await;
     }

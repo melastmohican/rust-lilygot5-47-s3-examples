@@ -81,8 +81,8 @@ fn line_texts() {
     assert_eq!(sd_line(None), "SD card: not found");
     assert_eq!(rtc_line(true), "RTC: found");
     assert_eq!(rtc_line(false), "RTC: not found");
-    assert_eq!(touch_line(false), "Touch: not fitted");
-    assert_eq!(touch_line(true), "Touch: found (not used)");
+    assert_eq!(touch_line(false), "Touch: probe failed");
+    assert_eq!(touch_line(true), "Touch: online");
     assert_eq!(voltage_line(4200), "Voltage: 4.20 V");
     assert_eq!(voltage_line(3712), "Voltage: 3.71 V");
     assert_eq!(pressed_line(7), "Pressed: 7");
@@ -186,7 +186,8 @@ fn the_static_screen_has_title_and_three_lines() {
         &font,
         "SD card: 14.8 GB",
         "RTC: found",
-        "Touch: not fitted",
+        "Touch: probe failed",
+        false,
     );
     for (y, name) in [
         (TITLE_Y, "title"),
@@ -244,4 +245,86 @@ fn the_sleep_screen_is_centered() {
         "ink spans {first}..{last}"
     );
     assert_eq!(c.dark_in(0, 0, 960, 150), 0);
+}
+
+#[test]
+fn the_touch_address_is_5d_when_it_answers_else_14() {
+    assert_eq!(touch_address(false, false), 0x14);
+    assert_eq!(touch_address(true, false), 0x14);
+    assert_eq!(touch_address(false, true), 0x5D);
+    assert_eq!(touch_address(true, true), 0x5D);
+}
+
+#[test]
+fn the_mapping_swaps_then_mirrors_y_like_sensorlib() {
+    // raw (x, y) -> swap -> (y, x) -> mirror Y against 540 -> (y, 540 - x).
+    assert_eq!(map_point(0, 0), (0, 540));
+    assert_eq!(map_point(540, 960), (960, 0));
+    assert_eq!(map_point(100, 200), (200, 440));
+    assert_eq!(map_point(270, 480), (480, 270));
+}
+
+#[test]
+fn the_mapping_clamps_like_sensorlib() {
+    // Raw x above 540 wraps in 16 bits, then clamps to 540.
+    assert_eq!(map_point(600, 100), (100, 540));
+    // Raw y above 960 clamps to 960.
+    assert_eq!(map_point(100, 2000), (960, 440));
+}
+
+#[test]
+fn the_corner_boxes_are_hit_inside_and_not_on_the_edge() {
+    assert_eq!(hit(50, 50), Some(0)); // A, top left
+    assert_eq!(hit(910, 50), Some(1)); // B, top right
+    assert_eq!(hit(50, 490), Some(2)); // C, bottom left
+    assert_eq!(hit(910, 490), Some(3)); // D, bottom right
+    assert_eq!(hit(480, 500), Some(SLEEP_BOX)); // Sleep
+    assert_eq!(hit(10, 50), None); // the left edge of A is excluded
+    assert_eq!(hit(90, 50), None); // the right edge of A is excluded
+    assert_eq!(hit(480, 270), None);
+}
+
+#[test]
+fn the_touch_text_names_the_box_or_the_position() {
+    assert_eq!(touch_text(50, 50, Some(0)), "Pressed Button: A");
+    assert_eq!(touch_text(910, 490, Some(3)), "Pressed Button: D");
+    assert_eq!(touch_text(480, 500, Some(SLEEP_BOX)), "Pressed Button: E");
+    assert_eq!(touch_text(480, 270, None), "X:480 Y:270");
+}
+
+#[test]
+fn the_boxes_are_drawn_with_letters_and_the_sleep_outline() {
+    let font = font();
+    let mut c = Canvas::new();
+    draw_static(&mut c, &font, "sd", "rtc", "Touch: online", true);
+    // The corner boxes are solid black.
+    for (_, x, y, w, h) in &BOXES[..4] {
+        assert!(
+            c.dark_in(*x, *y, *w, *h) > (*w * *h) as usize / 2,
+            "box at {x},{y} is black"
+        );
+    }
+    // The letter is white inside the black box, so there are light pixels in it.
+    let light = (10..90)
+        .flat_map(|x| (10..90).map(move |y| (x, y)))
+        .filter(|&(x, y)| c.pixels[(y * 960 + x) as usize] > 8)
+        .count();
+    assert!(light > 20, "the letter A is drawn in white");
+    // The Sleep box is an outline with text, not filled.
+    let (_, x, y, w, _) = BOXES[SLEEP_BOX as usize];
+    assert!(c.dark_in(x, y, w, 75) < (w * 75) as usize / 2);
+    assert!(
+        c.dark_in(x + 10, y + 20, w - 20, 50) > 20,
+        "Sleep text is drawn"
+    );
+}
+
+#[test]
+fn no_boxes_without_a_touch_controller() {
+    let font = font();
+    let mut c = Canvas::new();
+    draw_static(&mut c, &font, "sd", "rtc", "Touch: probe failed", false);
+    for (_, x, y, w, h) in &BOXES {
+        assert_eq!(c.dark_in(*x, *y, *w, *h), 0);
+    }
 }

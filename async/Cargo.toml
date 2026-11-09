@@ -34,6 +34,7 @@ embedded-sdmmc = { version = "0.10.0", default-features = false }
 minipng = "1.0"
 tinybmp = "0.6.0"
 pcf8563 = "0.2.1"
+gt911 = "0.3.0"
 timezone-data = "0.2.0"
 esp-radio = { version = "0.18.0", features = ["wifi", "esp32s3", "unstable", "defmt"] }
 embassy-net = { version = "0.9.1", features = ["defmt", "udp", "dns", "dhcpv4", "medium-ethernet", "proto-ipv4"] }
