@@ -27,3 +27,6 @@ target/
 
 # Local cargo override that points at the epdpi checkout (see AGENTS.md)
 /.cargo/
+
+# Python bytecode of tools/
+__pycache__/
