@@ -11,6 +11,9 @@ follow its conventions. The Arduino sketches to port are in `~/Src/Arduino/LilyG
   `blocking/src/lib.rs` and `async/src/lib.rs`, because depending on the blocking crate would
   switch `epdpi` to blocking. Keep the two in step.
 - Every port has a blocking and an async twin with the same file name as the Arduino sketch.
+- Parity with `~/Src/Arduino/LilyGoT5ePaper/`: every sketch is ported except `wifi_sync` (skipped on purpose) and
+  `OWM-Weather` (the upstream licence reserves its rights, so it stays out of the repository). The README lists what is
+  written but not run (touch, deep sleep without USB, a connected battery). Keep that list true when an example changes.
 - Each example states its build on screen (`Rust: epdpi blocking|async`) and has a `//!` header
   with `## Run` and `## Expected`.
 - WiFi examples include `secret.rs` at the repo root (git-ignored; copy `secret.rs.example`). Never

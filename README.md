@@ -7,7 +7,7 @@ LilyGo T5 4.7" S3 (V2.4): ESP32-S3, 16 MB flash, OPI PSRAM, ED047TC1 panel, 960 
 |---|---|
 | `blocking/` | Examples on the blocking API. |
 | `async/` | The same examples on the Embassy executor. |
-| `host-tests/` | Tests that run on the host, in both modes: the `animated_smiles` G5 decoder and bounce logic. |
+| `host-tests/` | Tests that run on the host, in both modes: the hardware-free `mod ui` code of the examples, the `animated_smiles` G5 decoder, the SD card logic, icons and fixtures. |
 
 Each of `blocking/`, `async/` and `host-tests/` is a separate Cargo project on purpose. `epdpi` has
 mutually exclusive blocking and async modes, and one Cargo workspace would unify them.
@@ -29,12 +29,40 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 | `news` | Port of the LilyGo `News` sketch: fetches NewsAPI top headlines over HTTPS (key in the git-ignored `secret.rs`), takes the time from SNTP (Pacific), and shows the date, the update time and up to four headlines with descriptions in Open Sans Bold. Stays awake and refreshes every 30 min with USB attached, deep-sleeps 60 min otherwise. Has host tests. |n| `draw_images` | Port of the LilyGo sketch: three full-screen pictures (a painting, a pencil drawing, a manga page) 3 s each in a loop. |
 | `openmeteo` | Port of the LilyGo `OpenMeteo-Weather` sketch: fetches the Open-Meteo forecast over HTTPS (no key), takes the time from SNTP (Pacific) and the battery from the ADC, and draws the dashboard: current weather and feels-like, battery, date, last refresh, an hourly temperature graph with rain chance, and a 6-day strip with icons (`assets/icons/`). Stays awake with USB (refresh every 5 minutes), otherwise deep sleeps 60 minutes. |
 | `show_jpeg` | Port of the FastEPD sketch: an 800x480 JPEG decoded with `zune-jpeg` and shown in 16 grays. Picture is `assets/mocha800x480.jpg`. |
+| `draw_images` | Port of the LilyGo `drawImages` sketch: three full-screen pictures (`assets/jimothy_*.jpg`, a painting, a pencil drawing and a manga page of the author's raccoon), decoded with `zune-jpeg`, 3 s each, in a loop. |
+| `gif_player` | Port of the FastEPD sketch: a title, then a 36 frame black and white GIF (`assets/muybridge_horse_walking.gif`, public domain) played once with a `FastMono` update per frame, then a clear. |
 | `antialias_font` | Port of the FastEPD sketch: three lines of Roboto Black, hard, smooth, and smooth white on black, from a TTF with `fontdue`. |
 | `macpaint_hello` | Port of the FastEPD sketch: a MacPaint window, then a brush writes "hello" in 361 partial updates. Picture is `assets/macpaint_640x480.bmp`. |
 | `animated_smiles` | Port of the FastEPD sketch: 8 bouncing smileys, 250 partial updates, then a clear. Has host tests. |
 | `lilygo_grayscale_test` | Port of the LilyGo vendor sketch: 16 gradient bars drawn twice per cycle, draw times in the log. |
 | `screen_repair` | Port of the LilyGo sketch: a clear, 20 black pulses, a clear, 40 white pulses, a clear. Wipes ghosts. |
 | `draw_example` | Port of the LilyGo `drawExample`: five random shapes, one per second, then a clear, in a loop. |
+
+## Arduino sketches
+
+Every sketch in `~/Src/Arduino/LilyGoT5ePaper/` has an example here, in a blocking and an async twin, except two.
+
+| Sketch | Example |
+|---|---|
+| `FastEPD/animated_smiles`, `antialias_font`, `gif_player`, `grayscale_test`, `macpaint_hello`, `show_jpeg` | the example of the same name |
+| `FastEPD/microSD` | `micro_sd` |
+| `LilyGo/button`, `demo`, `screen_repair` | the example of the same name (`demo` is built from `battery`, `rtc`, `wifi_ntp` and a touch probe) |
+| `LilyGo/drawExample`, `drawImages` | `draw_example`, `draw_images` |
+| `LilyGo/grayscale_test` | `lilygo_grayscale_test` |
+| `News`, `Quotables`, `OpenMeteo-Weather` | `news`, `quotables`, `openmeteo` (`https_get` is their shared HTTPS check) |
+
+**Not ported:**
+
+- `LilyGo/wifi_sync`: skipped on purpose.
+- `OWM-Weather`: the upstream licence reserves its rights, so it is not in this repository.
+
+**Checked on the board:** each ported sketch ran on the panel in both twins and was compared by photo or by eye with the Arduino result. `battery`, `rtc`, `wifi_ntp` and `https_get` draw nothing and were checked from their logs.
+
+**Written but not run:**
+
+- The GT911 touch part of `demo` (corner boxes and the `Sleep` box). The board has no touch panel, so only the `Touch: probe failed` path ran.
+- The deep sleep path of `quotables`, `news` and `openmeteo`, which only runs without USB. `button` and `demo` do sleep and wake.
+- `battery` and `demo` with a battery connected. The tests ran on USB power alone and read the clamp of 4.2 V.
 
 ## Run
 
