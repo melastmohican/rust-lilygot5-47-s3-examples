@@ -47,6 +47,11 @@ pub mod battery {
     include!(concat!(env!("OUT_DIR"), "/battery_ui.rs"));
 }
 
+/// The weather request, parsing and mappings of `openmeteo`.
+pub mod openmeteo {
+    include!(concat!(env!("OUT_DIR"), "/openmeteo_ui.rs"));
+}
+
 /// Parsing, ASCII folding, wrapping, Pacific time and drawing of `news`.
 pub mod news {
     include!(concat!(env!("OUT_DIR"), "/news_ui.rs"));
