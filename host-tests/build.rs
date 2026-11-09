@@ -35,6 +35,7 @@ fn main() {
         "show_jpeg",
         "draw_images",
         "gif_player",
+        "button",
     ] {
         let path = format!("../blocking/examples/{example}.rs");
         println!("cargo:rerun-if-changed={path}");

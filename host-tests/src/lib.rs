@@ -41,3 +41,8 @@ pub mod draw_images {
 pub mod gif_player {
     include!(concat!(env!("OUT_DIR"), "/gif_player_ui.rs"));
 }
+
+/// The pages, button logic and drawing of `button`.
+pub mod button {
+    include!(concat!(env!("OUT_DIR"), "/button_ui.rs"));
+}

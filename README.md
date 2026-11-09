@@ -18,6 +18,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
 | `grayscale_test` | Port of the FastEPD sketch: 16 gray swatches with their level numbers. Digits come out slightly paler than the Arduino sketch. |
+| `button` | Port of the LilyGo sketch: three text pages, a press of the user button (GPIO21) turns the page, the fourth press deep-sleeps, a press wakes it. Has host tests. |
 | `gif_player` | Port of the FastEPD sketch: a title, then a 36 frame GIF of Muybridge's walking horse (public domain) played once, a partial update per frame. Animation is `assets/muybridge_horse_walking.gif`, made by `tools/dither_gif.py`. |
 | `draw_images` | Port of the LilyGo sketch: three full-screen pictures (a painting, a pencil drawing, a manga page) 3 s each in a loop. |
 | `show_jpeg` | Port of the FastEPD sketch: an 800x480 JPEG decoded with `zune-jpeg` and shown in 16 grays. Picture is `assets/mocha800x480.jpg`. |
