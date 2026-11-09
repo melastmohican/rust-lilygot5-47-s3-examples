@@ -33,6 +33,7 @@ fn main() {
         "macpaint_hello",
         "antialias_font",
         "show_jpeg",
+        "draw_images",
     ] {
         let path = format!("../blocking/examples/{example}.rs");
         println!("cargo:rerun-if-changed={path}");

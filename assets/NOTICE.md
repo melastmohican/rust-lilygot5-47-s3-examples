@@ -19,3 +19,8 @@
 - `mocha800x480.jpg`: the 800 x 480 JPEG of the `show_jpeg` sketch (the same picture as the
   `mocha800x480.png` of the M5Stack PaperDIY `microSD` sketch). A photograph of Mocha, an Australian
   Labradoodle, taken by the author of this repository, who owns the copyright.
+
+- `jimothy_painting.jpg`, `jimothy_sketch.jpg`, `jimothy_manga.jpg`: three AI-generated pictures of a
+  raccoon, made by the author of this repository, who owns whatever rights there are in them. Each
+  is the original (2400 x 1792) scaled to 723 x 540 and saved as JPEG at quality 85. Used by
+  `examples/draw_images.rs`.

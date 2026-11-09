@@ -31,3 +31,8 @@ pub mod antialias_font {
 pub mod show_jpeg {
     include!(concat!(env!("OUT_DIR"), "/show_jpeg_ui.rs"));
 }
+
+/// The JPEG decoding and placement of `draw_images`.
+pub mod draw_images {
+    include!(concat!(env!("OUT_DIR"), "/draw_images_ui.rs"));
+}
