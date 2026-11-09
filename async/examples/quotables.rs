@@ -5,9 +5,8 @@
 //! `~/Src/Arduino/LilyGoT5ePaper/Quotables`. The blocking twin is `quotables` in `blocking/`.
 //!
 //! Differences from the sketch: the quote marks are part of the text, on the first and last line (the sketch
-//! has one opening mark on its own line above the text, and no closing mark), and the text is Roboto Black (`assets/fonts`, Apache 2.0) at 50, 37 and 25 px,
-//! the em sizes of the sketch's OpenSans 24B, 18B and 12B, whose bitmap headers need the Arduino GFX
-//! code. The Wi-Fi stays connected between refreshes when the board stays awake. TLS is `reqwless` over
+//! has one opening mark on its own line above the text, and no closing mark), and the text is Open Sans Bold (`assets/fonts`, OFL 1.1), the sketch's face, at 50, 37 and 25 px,
+//! the em sizes of its OpenSans 24B, 18B and 12B bitmaps, which need the Arduino GFX code. The Wi-Fi stays connected between refreshes when the board stays awake. TLS is `reqwless` over
 //! `embedded-tls` with no certificate check, like the sketch's `setInsecure()`. With a USB host connected
 //! the board stays awake and refreshes every 5 min, otherwise it deep-sleeps 30 min, as in the sketch.
 //!
@@ -54,7 +53,7 @@ mod secret {
 }
 
 /// The font file, see `assets/NOTICE.md`.
-const ROBOTO_BLACK: &[u8] = include_bytes!("../../assets/fonts/Roboto-Black-ASCII.ttf");
+const OPEN_SANS_BOLD: &[u8] = include_bytes!("../../assets/fonts/OpenSans-Bold.ttf");
 
 /// The hardware-free part: parsing, ASCII folding, wrapping and drawing. Same text in the other crate,
 /// and tested on the host by `host-tests`.
@@ -295,7 +294,8 @@ async fn main(spawner: Spawner) -> ! {
         error!("buffer allocation too small");
         rust_lilygot5_47_s3_embassy_examples::halt();
     };
-    let Ok(font) = fontdue::Font::from_bytes(ROBOTO_BLACK, fontdue::FontSettings::default()) else {
+    let Ok(font) = fontdue::Font::from_bytes(OPEN_SANS_BOLD, fontdue::FontSettings::default())
+    else {
         error!("the font does not load");
         rust_lilygot5_47_s3_embassy_examples::halt();
     };

@@ -4,11 +4,11 @@ use embedded_graphics::{pixelcolor::Gray4, prelude::*};
 use fontdue::{Font, FontSettings};
 use host_tests::quotables::*;
 
-const ROBOTO_BLACK: &[u8] = include_bytes!("../../assets/fonts/Roboto-Black-ASCII.ttf");
+const OPEN_SANS_BOLD: &[u8] = include_bytes!("../../assets/fonts/OpenSans-Bold.ttf");
 const SAMPLE: &[u8] = include_bytes!("../fixtures/quotable_random.json");
 
 fn font() -> Font {
-    Font::from_bytes(ROBOTO_BLACK, FontSettings::default()).expect("the font loads")
+    Font::from_bytes(OPEN_SANS_BOLD, FontSettings::default()).expect("the font loads")
 }
 
 #[test]

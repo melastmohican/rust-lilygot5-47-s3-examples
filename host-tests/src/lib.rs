@@ -47,6 +47,11 @@ pub mod battery {
     include!(concat!(env!("OUT_DIR"), "/battery_ui.rs"));
 }
 
+/// Parsing, ASCII folding, wrapping, Pacific time and drawing of `news`.
+pub mod news {
+    include!(concat!(env!("OUT_DIR"), "/news_ui.rs"));
+}
+
 /// Parsing, ASCII folding, wrapping and drawing of `quotables`.
 pub mod quotables {
     include!(concat!(env!("OUT_DIR"), "/quotables_ui.rs"));

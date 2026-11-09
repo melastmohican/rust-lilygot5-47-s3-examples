@@ -16,6 +16,13 @@
   (fonttools). The whole font is 508 KB and `fontdue` runs out of memory loading it on the board,
   because it parses every glyph when a font is opened. Used by `examples/antialias_font.rs`.
 
+- `fonts/OpenSans-Bold.ttf`: Open Sans Bold, Copyright 2020 The Open Sans Project Authors, licensed under
+  the SIL Open Font License 1.1 (`fonts/LICENSE-OpenSans-OFL-1.1.txt`). Source:
+  <https://github.com/googlefonts/opensans> (`fonts/ttf/OpenSans-Bold.ttf`, SHA-256
+  `27da758f4dcac9a65abe914c13b463b42982b9909bc65713424099f4810bd1e6`). Not modified. It is the face the
+  LilyGo `Quotables`, `News` and `OpenMeteo-Weather` sketches use as bitmaps (`opensans*b.h`). Used by
+  `examples/quotables.rs` and `examples/news.rs`.
+
 - `mocha800x480.jpg`: the 800 x 480 JPEG of the `show_jpeg` sketch (the same picture as the
   `mocha800x480.png` of the M5Stack PaperDIY `microSD` sketch). A photograph of Mocha, an Australian
   Labradoodle, taken by the author of this repository, who owns the copyright.
