@@ -35,6 +35,7 @@ fn main() {
         "show_jpeg",
         "draw_images",
         "gif_player",
+        "battery",
         "button",
         "micro_sd",
     ] {

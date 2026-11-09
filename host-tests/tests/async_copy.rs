@@ -28,6 +28,7 @@ fn the_async_crate_has_the_same_ui_blocks() {
         "show_jpeg",
         "draw_images",
         "gif_player",
+        "battery",
         "button",
         "micro_sd",
     ] {
