@@ -27,6 +27,7 @@ fn the_async_crate_has_the_same_ui_blocks() {
         "antialias_font",
         "show_jpeg",
         "draw_images",
+        "gif_player",
     ] {
         let a = std::fs::read_to_string(here.join(format!("{example}.rs"))).unwrap();
         let b = std::fs::read_to_string(there.join(format!("{example}.rs"))).unwrap();

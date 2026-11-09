@@ -24,3 +24,8 @@
   raccoon, made by the author of this repository, who owns whatever rights there are in them. Each
   is the original (2400 x 1792) scaled to 723 x 540 and saved as JPEG at quality 85. Used by
   `examples/draw_images.rs`.
+
+- `1bitsmallcity.gif`: the 320 x 288, 55 frame, 1 bit GIF of the `gif_player` sketch (a pixel art
+  city), the bytes of its `1bitsmallcity.h`. That file was made with bitbank2's `image_to_c`; the
+  Arduino repository does not say who drew the animation or under what licence. Check before
+  publishing this repository, or replace it with a GIF of your own.

@@ -34,6 +34,7 @@ fn main() {
         "antialias_font",
         "show_jpeg",
         "draw_images",
+        "gif_player",
     ] {
         let path = format!("../blocking/examples/{example}.rs");
         println!("cargo:rerun-if-changed={path}");

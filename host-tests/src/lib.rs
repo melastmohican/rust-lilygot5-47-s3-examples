@@ -36,3 +36,8 @@ pub mod show_jpeg {
 pub mod draw_images {
     include!(concat!(env!("OUT_DIR"), "/draw_images_ui.rs"));
 }
+
+/// The GIF drawing of `gif_player`.
+pub mod gif_player {
+    include!(concat!(env!("OUT_DIR"), "/gif_player_ui.rs"));
+}
