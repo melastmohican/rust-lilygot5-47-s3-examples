@@ -23,6 +23,13 @@
   LilyGo `Quotables`, `News` and `OpenMeteo-Weather` sketches use as bitmaps (`opensans*b.h`). Used by
   `examples/quotables.rs` and `examples/news.rs`.
 
+- `icons/*.bmp`: eleven weather and battery icons from Lucide (<https://lucide.dev>, ISC licence,
+  `icons/LICENSE-Lucide-ISC.txt`, Copyright (c) 2026 Lucide Icons and Contributors), 48 x 48, 1 bit. They are
+  the icons of the Arduino `OpenMeteo-Weather` sketch, which rasterised the Lucide SVGs to C arrays; the BMPs
+  are made from those arrays by `tools/icons_from_arduino.py` and checked against them bit for bit. In the
+  sketch `full_battery` and `high_battery` are the same picture, and they are here too. Used by
+  `examples/openmeteo.rs`.
+
 - `mocha800x480.jpg`: the 800 x 480 JPEG of the `show_jpeg` sketch (the same picture as the
   `mocha800x480.png` of the M5Stack PaperDIY `microSD` sketch). A photograph of Mocha, an Australian
   Labradoodle, taken by the author of this repository, who owns the copyright.
