@@ -38,7 +38,7 @@ use rust_lilygot5_47_s3_embassy_examples::epdpi::{DriveCode, EpdParallelBus};
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-type Bus = rust_lilygot5_47_s3_embassy_examples::LilygoBus<Delay>;
+type Bus = rust_lilygot5_47_s3_embassy_examples::epdpi_esp::shift_reg_bus::ShiftRegBus<Delay>;
 
 /// One pass over the whole panel with the same drive code for every pixel.
 async fn pass(bus: &mut Bus, row: &mut [u8], code: DriveCode) {

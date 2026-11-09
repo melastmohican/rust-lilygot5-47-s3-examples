@@ -94,11 +94,11 @@ Pins come from the V2.4 schematic and the LilyGo-EPD47 library.
 STV, latch, output enable and mode go through a 74HCT4094 shift register (same protocol as a
 74HC595). There is no I2C power IC on this revision. GPIO46 is wired to the same strobe net as
 GPIO0, so it must never be driven: holding it high keeps the strobe high and garbles the control
-lines. The board bus is `LilygoBus` in `src/lib.rs` of each
+lines. The board bus is `epdpi_esp::shift_reg_bus::ShiftRegBus`, built by `lcd_bus!` in `src/lib.rs` of each
 crate.
 
 `epdpi-esp`'s `LcdBus` cannot drive this board. It expects CKV, LE, SPV, OE and power on plain GPIO
-pins, as on the M5Stack PaperDIY. Here those lines sit behind the shift register, so `LilygoBus` has its
+pins, as on the M5Stack PaperDIY. Here those lines sit behind the shift register, so `ShiftRegBus` has its
 own edge sequence, power-on order and row timing (from the vendor library) and implements the same
 `epdpi::EpdParallelBus` trait.
 

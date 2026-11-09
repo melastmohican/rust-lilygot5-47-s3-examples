@@ -7,7 +7,7 @@ follow its conventions. The Arduino sketches to port are in `~/Src/Arduino/LilyG
 
 - `blocking/`, `async/`, `host-tests/`: three separate Cargo projects. Never one workspace, it
   would unify the blocking and async modes of `epdpi`.
-- Board support (`init!`, `lcd_bus!`, `LilygoBus`, `shift_reg`) is copied between
+- Board support (`init!`, `lcd_bus!`, `halt`) is copied between
   `blocking/src/lib.rs` and `async/src/lib.rs`, because depending on the blocking crate would
   switch `epdpi` to blocking. Keep the two in step.
 - Every port has a blocking and an async twin with the same file name as the Arduino sketch.
@@ -46,7 +46,7 @@ idles low, OE and MODE are on only inside a frame, 248 clocks per row. SPH is dr
 FastEPD: high between rows, low only while a row is sent. Holding it low made 1 px strokes ghost
 (a copy shifted by about a pixel, pale digits). The write strobe idles high (LCD_CK_IDLE_EDGE). The vendor
 runs 10 MHz and 50 us of CKV high per row. We use 16 MHz and 22 us (`ROW_US`), the PaperDIY timing
-the `epdpi` waveforms were tuned for: it gave better grays than 10 MHz / 50 us (8 Nov 2026).
+the `epdpi` waveforms were tuned for (the default of `epdpi_esp::shift_reg_bus::ROW_US`): it gave better grays than 10 MHz / 50 us (8 Nov 2026).
 
 Waveforms are the `epdpi` ones. M5 refresh modes belong to the PaperDIY, start with `Quality16`.
 Hardware numbers (edge timing, delays) come from LilyGo-EPD47, FastEPD and epdiy. Re-derive, do

@@ -24,8 +24,8 @@ embedded-hal-async = "1.0.0"
 
 # Async API on purpose: `default-features = false` leaves out `blocking`, which is why this is
 # its own project and not a member of the blocking crate.
-epdpi     = { version = "0.1", default-features = false, features = ["defmt", "graphics"] }
-epdpi-esp = { version = "0.1", default-features = false, features = ["esp32s3", "defmt"] }
+epdpi     = { version = "0.2", default-features = false, features = ["defmt", "graphics"] }
+epdpi-esp = { version = "0.2", default-features = false, features = ["esp32s3", "defmt"] }
 
 [dev-dependencies]
 fontdue = { version = "0.9.5", default-features = false, features = ["hashbrown"] }

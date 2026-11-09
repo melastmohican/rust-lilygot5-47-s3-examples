@@ -12,7 +12,7 @@ default = ["blocking"]
 blocking = ["epdpi/blocking"]
 
 [dependencies]
-epdpi = { version = "0.1", default-features = false, features = ["graphics"] }
+epdpi = { version = "0.2", default-features = false, features = ["graphics"] }
 embedded-graphics = "0.8.1"
 fontdue = "0.9.5"
 embedded-sdmmc = "0.10.0"
