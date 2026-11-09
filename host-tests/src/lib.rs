@@ -16,3 +16,8 @@ pub const BUILD: &str = if cfg!(feature = "blocking") {
 pub mod animated_smiles {
     include!(concat!(env!("OUT_DIR"), "/animated_smiles_ui.rs"));
 }
+
+/// The bitmap, brush and pen path of `macpaint_hello`.
+pub mod macpaint_hello {
+    include!(concat!(env!("OUT_DIR"), "/macpaint_hello_ui.rs"));
+}

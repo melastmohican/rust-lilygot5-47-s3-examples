@@ -14,6 +14,7 @@ blocking = ["epdpi/blocking"]
 [dependencies]
 epdpi = { version = "0.1", default-features = false, features = ["graphics"] }
 embedded-graphics = "0.8.1"
+tinybmp = "0.6.0"
 
 [profile.dev]
 opt-level = 2

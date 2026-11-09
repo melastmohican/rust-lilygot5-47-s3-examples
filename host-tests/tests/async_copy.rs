@@ -21,7 +21,7 @@ fn block(source: &str) -> String {
 fn the_async_crate_has_the_same_ui_blocks() {
     let here = Path::new(env!("CARGO_MANIFEST_DIR")).join("../blocking/examples");
     let there = Path::new(env!("CARGO_MANIFEST_DIR")).join("../async/examples");
-    for example in ["animated_smiles"] {
+    for example in ["animated_smiles", "macpaint_hello"] {
         let a = std::fs::read_to_string(here.join(format!("{example}.rs"))).unwrap();
         let b = std::fs::read_to_string(there.join(format!("{example}.rs"))).unwrap();
         assert!(

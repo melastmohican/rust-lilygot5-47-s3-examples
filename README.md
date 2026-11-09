@@ -18,6 +18,7 @@ mutually exclusive blocking and async modes, and one Cargo workspace would unify
 |---|---|
 | `display_demo` | Borders, text and a gray bar, one `Quality16` refresh. |
 | `grayscale_test` | Port of the FastEPD sketch: 16 gray swatches with their level numbers. Digits come out slightly paler than the Arduino sketch. |
+| `macpaint_hello` | Port of the FastEPD sketch: a MacPaint window, then a brush writes "hello" in 361 partial updates. Picture is `assets/macpaint_640x480.bmp`. |
 | `animated_smiles` | Port of the FastEPD sketch: 8 bouncing smileys, 250 partial updates, then a clear. Has host tests. |
 | `lilygo_grayscale_test` | Port of the LilyGo vendor sketch: 16 gradient bars drawn twice per cycle, draw times in the log. |
 | `screen_repair` | Port of the LilyGo sketch: a clear, 20 black pulses, a clear, 40 white pulses, a clear. Wipes ghosts. |
