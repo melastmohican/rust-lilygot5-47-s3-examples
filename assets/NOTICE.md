@@ -15,3 +15,7 @@
   `pyftsubset Roboto-Black.ttf --unicodes=U+0020-007E --layout-features=kern --no-hinting --name-IDs='*'`
   (fonttools). The whole font is 508 KB and `fontdue` runs out of memory loading it on the board,
   because it parses every glyph when a font is opened. Used by `examples/antialias_font.rs`.
+
+- `mocha800x480.jpg`: the 800 x 480 JPEG of the `show_jpeg` sketch (the same picture as the
+  `mocha800x480.png` of the M5Stack PaperDIY `microSD` sketch). A photograph of Mocha, an Australian
+  Labradoodle, taken by the author of this repository, who owns the copyright.

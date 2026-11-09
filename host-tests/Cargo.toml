@@ -16,6 +16,8 @@ epdpi = { version = "0.1", default-features = false, features = ["graphics"] }
 embedded-graphics = "0.8.1"
 fontdue = "0.9.5"
 tinybmp = "0.6.0"
+zune-core = { version = "0.5.1", default-features = false }
+zune-jpeg = { version = "0.5.15", default-features = false }
 
 [profile.dev]
 opt-level = 2

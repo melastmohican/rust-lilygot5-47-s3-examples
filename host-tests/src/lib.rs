@@ -26,3 +26,8 @@ pub mod macpaint_hello {
 pub mod antialias_font {
     include!(concat!(env!("OUT_DIR"), "/antialias_font_ui.rs"));
 }
+
+/// The JPEG decoding and drawing of `show_jpeg`.
+pub mod show_jpeg {
+    include!(concat!(env!("OUT_DIR"), "/show_jpeg_ui.rs"));
+}

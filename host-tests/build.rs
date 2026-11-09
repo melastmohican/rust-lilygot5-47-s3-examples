@@ -28,7 +28,12 @@ fn extract(source: &str) -> String {
 
 fn main() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR");
-    for example in ["animated_smiles", "macpaint_hello", "antialias_font"] {
+    for example in [
+        "animated_smiles",
+        "macpaint_hello",
+        "antialias_font",
+        "show_jpeg",
+    ] {
         let path = format!("../blocking/examples/{example}.rs");
         println!("cargo:rerun-if-changed={path}");
         let source = fs::read_to_string(&path).unwrap_or_else(|e| panic!("{path}: {e}"));
