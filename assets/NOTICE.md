@@ -5,8 +5,8 @@
   black menu bar and tools. The sketch stores the same picture inverted, with a set bit meaning ink.
 - Origin of the picture and of the pen path in `examples/macpaint_hello.rs`: the
   `GDEQ0426T82_MacPaint` sketch, itself a port of upiir's "hello" animation
-  (<https://github.com/upiir/seeed_eink_partial_update>). The upstream repository states no licence
-  for them that I could find. Check before publishing this repository.
+  (<https://github.com/upiir/seeed_eink_partial_update>), which is licensed under the MIT License,
+  Copyright (c) 2026 upir (checked 9 Nov 2026). The MIT notice must stay with copies of the picture and the path.
 
 - `fonts/Roboto-Black-ASCII.ttf`: Roboto Black 2.001047, Copyright 2015 Google Inc., licensed under
   the Apache License 2.0 (`fonts/LICENSE-Roboto-Apache-2.0.txt`). Source:
